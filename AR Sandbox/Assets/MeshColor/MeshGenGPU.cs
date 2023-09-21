@@ -77,6 +77,12 @@ public class MeshGeneratorGPU : MonoBehaviour
                 i++;
             }
         }
+
+        CreateShapeGPU();
+        mesh.vertices = vertices;
+        mesh.triangles = triangles;
+        mesh.colors = colors;
+        mesh.RecalculateNormals();
     }
 
     // Update is called once per frame
@@ -118,12 +124,7 @@ public class MeshGeneratorGPU : MonoBehaviour
     }
     void UpdateMesh()
     {
-        mesh.Clear();
-
         mesh.vertices = vertices;
-        mesh.triangles = triangles;
         mesh.colors = colors;
-
-        mesh.RecalculateNormals();
     }
 }

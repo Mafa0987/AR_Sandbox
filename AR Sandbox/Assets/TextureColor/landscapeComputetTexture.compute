@@ -3,7 +3,7 @@
 #pragma kernel CSContour
 
 RWStructuredBuffer<float3> vertices;
-RWStructuredBuffer<float> heightmap;
+StructuredBuffer<float> heightmap;
 RWTexture2D<float4> colors;
 
 static float4 Blue = float4(0, 0, 1, 1);

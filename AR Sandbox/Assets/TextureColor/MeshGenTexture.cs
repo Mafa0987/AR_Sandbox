@@ -6,25 +6,22 @@ using UnityEngine;
 [RequireComponent(typeof(MeshFilter))]
 public class MeshGeneratorTexture : MonoBehaviour
 {
-    Mesh mesh;
-
     public Material material;
-
     public ComputeShader computeShader;
-
-    Vector3[] vertices;
-
-    Vector2[] uvs;
-
-    float[] heightmap;
-    int[] triangles;
-
     public RenderTexture colors;
 
+    Mesh mesh;
+    Vector3[] vertices;
+    Vector2[] uvs;
+    int[] triangles;
+
+    ComputeBuffer verticesBuffer;
+    ComputeBuffer heightBuffer;
+
+
+    float[] heightmap;
     public int xSize = 500;
     public int zSize = 500;
-
-    public Gradient gradient;
 
     public float amplitude1 = 1f;
     public float amplitude2 = 1f;
@@ -45,6 +42,7 @@ public class MeshGeneratorTexture : MonoBehaviour
         GetComponent<MeshFilter>().mesh = mesh;
         mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
         triangles = new int[xSize * zSize * 6];
+
         int vert = 0;
         int tris = 0;
         for(int z = 0; z < zSize; z++)
@@ -63,6 +61,7 @@ public class MeshGeneratorTexture : MonoBehaviour
             }
             vert++;
         }
+
         heightmap = new float[501*501];
         for (int i = 0, z = 0; z <= zSize; z++)
         {
@@ -81,6 +80,7 @@ public class MeshGeneratorTexture : MonoBehaviour
                 i++;
             }
         }
+
         uvs = new Vector2[(xSize + 1) * (zSize + 1)];
         for (int i = 0, z = 0; z <= zSize; z++)
         {
@@ -90,7 +90,19 @@ public class MeshGeneratorTexture : MonoBehaviour
                 i++;
             }
         }
-    
+
+        vertices = new Vector3[(xSize + 1) * (zSize + 1)];
+        verticesBuffer = new ComputeBuffer(vertices.Length, sizeof(float) * 3);
+        heightBuffer = new ComputeBuffer(heightmap.Length, sizeof(float));
+        colors = new RenderTexture(501, 501, 24);
+        colors.enableRandomWrite = true;
+        colors.Create();
+        CreateShapeGPU();
+        mesh.vertices = vertices;
+        mesh.triangles = triangles;
+        mesh.uv = uvs;
+        material.mainTexture = colors;
+        mesh.RecalculateNormals();
     }
 
     // Update is called once per frame
@@ -102,15 +114,8 @@ public class MeshGeneratorTexture : MonoBehaviour
 
     void CreateShapeGPU()
     {
-        vertices = new Vector3[(xSize + 1) * (zSize + 1)];
-
-        ComputeBuffer verticesBuffer = new ComputeBuffer(vertices.Length, sizeof(float) * 3);
-        ComputeBuffer heightBuffer = new ComputeBuffer(heightmap.Length, sizeof(float));
         heightBuffer.SetData(heightmap);
         verticesBuffer.SetData(vertices);
-        colors = new RenderTexture(501, 501, 24);
-        colors.enableRandomWrite = true;
-        colors.Create();
 
         computeShader.SetBuffer(0, "heightmap", heightBuffer);
         computeShader.SetBuffer(0, "vertices", verticesBuffer);
@@ -124,19 +129,10 @@ public class MeshGeneratorTexture : MonoBehaviour
         computeShader.Dispatch(0, 512/8, 512/8, 1);
         verticesBuffer.GetData(vertices);
         computeShader.Dispatch(1, 126/9, 126/9, 1);
-
-        verticesBuffer.Dispose();
-        heightBuffer.Dispose();
     }
     void UpdateMesh()
     {
-        mesh.Clear();
-
         mesh.vertices = vertices;
-        mesh.triangles = triangles;
-        mesh.uv = uvs;
         material.mainTexture = colors;
-
-        mesh.RecalculateNormals();
     }
 }
