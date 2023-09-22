@@ -37,12 +37,57 @@ public class MeshGeneratorTexture : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        heightmap = new float[(xSize + 1) * (zSize + 1)];
-        mesh = new Mesh();
-        GetComponent<MeshFilter>().mesh = mesh;
-        mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
-        triangles = new int[xSize * zSize * 6];
+        CreateTriangles();
+        CreateHeightmap();
+        CreateUV();
+        InitShader();
+        CreateShapeGPU();
+        InitMesh();
+    }
 
+    // Update is called once per frame
+    void Update()
+    {
+        CreateShapeGPU();
+        UpdateMesh();
+    }
+
+    void CreateShapeGPU()
+    {
+        heightBuffer.SetData(heightmap);
+        computeShader.SetFloat("maxTerrainHeight", maxTerrainHeight);
+        computeShader.SetFloat("minTerrainHeight", minTerrainHeight);
+
+        computeShader.Dispatch(0, 512/8, 512/8, 1);
+        verticesBuffer.GetData(vertices);
+        computeShader.Dispatch(1, 126/9, 126/9, 1);
+    }
+    void UpdateMesh()
+    {
+        mesh.vertices = vertices;
+        material.mainTexture = colors;
+    }
+
+    void InitShader()
+    {
+        vertices = new Vector3[(xSize + 1) * (zSize + 1)];
+        verticesBuffer = new ComputeBuffer(vertices.Length, sizeof(float) * 3);
+        heightBuffer = new ComputeBuffer(heightmap.Length, sizeof(float));
+        colors = new RenderTexture(501, 501, 24);
+        colors.enableRandomWrite = true;
+        colors.Create();
+
+        computeShader.SetBuffer(0, "heightmap", heightBuffer);
+        computeShader.SetBuffer(0, "vertices", verticesBuffer);
+        computeShader.SetTexture(0, "colors", colors);
+        computeShader.SetBuffer(1, "heightmap", heightBuffer);
+        computeShader.SetBuffer(1, "vertices", verticesBuffer);
+        computeShader.SetTexture(1, "colors", colors);
+    }
+
+    void CreateTriangles()
+    {
+        triangles = new int[xSize * zSize * 6];
         int vert = 0;
         int tris = 0;
         for(int z = 0; z < zSize; z++)
@@ -61,7 +106,10 @@ public class MeshGeneratorTexture : MonoBehaviour
             }
             vert++;
         }
+    }
 
+    void CreateHeightmap()
+    {
         heightmap = new float[501*501];
         for (int i = 0, z = 0; z <= zSize; z++)
         {
@@ -80,7 +128,10 @@ public class MeshGeneratorTexture : MonoBehaviour
                 i++;
             }
         }
+    }
 
+    void CreateUV()
+    {
         uvs = new Vector2[(xSize + 1) * (zSize + 1)];
         for (int i = 0, z = 0; z <= zSize; z++)
         {
@@ -90,14 +141,13 @@ public class MeshGeneratorTexture : MonoBehaviour
                 i++;
             }
         }
-
-        vertices = new Vector3[(xSize + 1) * (zSize + 1)];
-        verticesBuffer = new ComputeBuffer(vertices.Length, sizeof(float) * 3);
-        heightBuffer = new ComputeBuffer(heightmap.Length, sizeof(float));
-        colors = new RenderTexture(501, 501, 24);
-        colors.enableRandomWrite = true;
-        colors.Create();
-        CreateShapeGPU();
+    }
+    
+    void InitMesh()
+    {
+        mesh = new Mesh();
+        GetComponent<MeshFilter>().mesh = mesh;
+        mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
         mesh.vertices = vertices;
         mesh.triangles = triangles;
         mesh.uv = uvs;
@@ -105,34 +155,4 @@ public class MeshGeneratorTexture : MonoBehaviour
         mesh.RecalculateNormals();
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        CreateShapeGPU();
-        UpdateMesh();
-    }
-
-    void CreateShapeGPU()
-    {
-        heightBuffer.SetData(heightmap);
-        verticesBuffer.SetData(vertices);
-
-        computeShader.SetBuffer(0, "heightmap", heightBuffer);
-        computeShader.SetBuffer(0, "vertices", verticesBuffer);
-        computeShader.SetTexture(0, "colors", colors);
-        computeShader.SetBuffer(1, "heightmap", heightBuffer);
-        computeShader.SetBuffer(1, "vertices", verticesBuffer);
-        computeShader.SetTexture(1, "colors", colors);
-        computeShader.SetFloat("maxTerrainHeight", maxTerrainHeight);
-        computeShader.SetFloat("minTerrainHeight", minTerrainHeight);
-
-        computeShader.Dispatch(0, 512/8, 512/8, 1);
-        verticesBuffer.GetData(vertices);
-        computeShader.Dispatch(1, 126/9, 126/9, 1);
-    }
-    void UpdateMesh()
-    {
-        mesh.vertices = vertices;
-        material.mainTexture = colors;
-    }
 }
