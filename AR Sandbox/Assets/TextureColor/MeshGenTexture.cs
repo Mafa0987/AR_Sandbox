@@ -19,7 +19,7 @@ public class MeshGeneratorTexture : MonoBehaviour
     ComputeBuffer heightBuffer;
 
 
-    float[] heightmap;
+    public float[] heightmap;
     public int xSize = 500;
     public int zSize = 500;
 
@@ -153,6 +153,12 @@ public class MeshGeneratorTexture : MonoBehaviour
         mesh.uv = uvs;
         material.mainTexture = colors;
         mesh.RecalculateNormals();
+    }
+
+    void OnDestroy()
+    {
+        verticesBuffer.Release();
+        heightBuffer.Release();
     }
 
 }

@@ -1,0 +1,47 @@
+#pragma kernel FindVelocity
+#pragma kernel UpdateHeights
+
+float c;
+float xSize;
+float zSize;
+float dt;
+float vd;
+float pd;
+
+RWStructuredBuffer<float3> vertices;
+RWStructuredBuffer<float> velocity;
+RWStructuredBuffer<float> hSums;
+
+[numthreads(8,8,1)]
+void FindVelocity (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= xSize+1 || id.y >= zSize+1)
+        return;
+
+    int vert = id.x + id.y * (xSize + 1);
+    float current = vertices[vert].y;
+    float hSum = 0.0;
+    float accel = 0.0;
+
+    hSum += id.y < zSize ? vertices[vert + xSize + 1].y : current;
+    hSum += id.y > 0 ? vertices[vert - xSize - 1].y : current;
+    hSum += id.x > 0 ? vertices[vert - 1].y : current;
+    hSum += id.x < xSize ? vertices[vert + 1].y : current;
+
+    hSums[vert] = hSum;
+
+    accel = c * (hSum - 4 * current);
+    velocity[vert] += accel * dt;
+    velocity[vert] *= vd;
+}
+
+[numthreads(8,8,1)]
+void UpdateHeights (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= xSize+1 || id.y >= zSize+1)
+        return;
+
+    int vert = id.x + id.y * (xSize + 1);
+    vertices[vert].y += (0.25 * hSums[vert] - vertices[vert].y) * pd;
+    vertices[vert].y += velocity[vert] * dt;
+}
