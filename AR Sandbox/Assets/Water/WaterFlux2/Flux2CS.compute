@@ -46,6 +46,11 @@ void FindVelocity (uint3 id : SV_DispatchThreadID)
     flux.z *= k;
     flux.w *= k;
 
+    if (id.x == 0) flux.z = 0;
+    if (id.y == 0) flux.y = 0;
+    if (id.x == xSize) flux.w = 0;
+    if (id.y == zSize) flux.x = 0;
+
     fluxMap[vert] = flux;
 }
 

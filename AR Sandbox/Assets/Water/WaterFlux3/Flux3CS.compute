@@ -23,14 +23,14 @@ void FindVelocity (uint3 id : SV_DispatchThreadID)
         return;
 
     int vert = id.x + id.y * (xSize + 1);
-    float current = vertices[vert].y;
     float4 flux = fluxMap[vert];
     float depth = depthMap[vert];
+    float current = depth + heightMap[vert];
 
-    float top = id.y < zSize ? vertices[vert + xSize + 1].y : current;
-    float bottom = id.y > 0 ? vertices[vert - xSize - 1].y : current;
-    float left = id.x > 0 ? vertices[vert - 1].y : current;
-    float right = id.x < xSize ? vertices[vert + 1].y : current;
+    float top = id.y < zSize ? (depthMap[vert + xSize + 1] + heightMap[vert + xSize + 1]) : current;
+    float bottom = id.y > 0 ? (depthMap[vert - xSize - 1] + heightMap[vert - xSize - 1]) : current;
+    float left = id.x > 0 ? (depthMap[vert - 1] + heightMap[vert - 1]) : current;
+    float right = id.x < xSize ? (depthMap[vert + 1] + heightMap[vert + 1]) : current;
 
     float dtop = current - top;
     float dbottom = current - bottom;
@@ -49,7 +49,12 @@ void FindVelocity (uint3 id : SV_DispatchThreadID)
     flux.z *= k;
     flux.w *= k;
 
-    fluxMap[vert] = flux;
+    if (id.x == 0) flux.z = 0;
+    if (id.y == 0) flux.y = 0;
+    if (id.x == xSize) flux.w = 0;
+    if (id.y == zSize) flux.x = 0;
+
+    fluxMap[vert] = max(0, flux);
 }
 
 [numthreads(8,8,1)]
@@ -61,13 +66,16 @@ void UpdateHeights (uint3 id : SV_DispatchThreadID)
     int vert = id.x + id.y * (xSize + 1);
     float4 flux = fluxMap[vert];
     float outflux = flux.x + flux.y + flux.z + flux.w;
-    float influxtop = fluxMap[vert + xSize + 1].y;
-    float influxbottom = fluxMap[vert - xSize - 1].x;
-    float influxleft = fluxMap[vert - 1].w;
-    float influxright = fluxMap[vert + 1].z;
-    float influx = influxtop + influxbottom + influxleft + influxright;
-    float deltavolume = (influx - outflux) * dt;
 
-    depthMap[vert] += deltavolume / a;
+    float influxtop = id.y < zSize ? fluxMap[vert + xSize + 1].y : 0;
+    float influxbottom = id.y > 0 ? fluxMap[vert - xSize - 1].x : 0;
+    float influxleft = id.x > 0 ? fluxMap[vert - 1].w : 0;
+    float influxright = id.x < xSize ? fluxMap[vert + 1].z: 0;
+    
+    float influx = influxtop + influxbottom + influxleft + influxright;
+
+    float deltavolume = influx - outflux;
+
+    depthMap[vert] += dt * deltavolume / a;
     vertices[vert].y = depthMap[vert] + heightMap[vert];
 }

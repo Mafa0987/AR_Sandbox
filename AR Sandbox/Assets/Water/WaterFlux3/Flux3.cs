@@ -13,6 +13,8 @@ public class Flux3 : MonoBehaviour
     float[] depthMap;
     Vector4[] fluxMap;
 
+    public TerrainGen terrain;
+
     int[] triangles;
     public int xSize = 500;
     public int zSize = 500;
@@ -106,14 +108,15 @@ public class Flux3 : MonoBehaviour
         WaterCS.SetBuffer(0, "hSums", hSumsBuffer);
         WaterCS.SetBuffer(1, "hSums", hSumsBuffer);
 
+        heightMap = terrain.heightmap;
         for (int i = 0, z = 0; z <= zSize; z++)
         {
             for (int x = 0; x <= xSize; x++)
             {
                 vertices[i] = new Vector3(x, 0, z);
                 fluxMap[i] = new Vector4(0, 0, 0, 0);
-                depthMap[i] = 10;
-                heightMap[i] = 0;
+                depthMap[i] = 0;
+                //heightMap[i] = x/10f;
                 vertices[i].y = heightMap[i] + depthMap[i];
                 i++;
             }
@@ -153,11 +156,12 @@ public class Flux3 : MonoBehaviour
 
     void AddBump()
     {
-        float amplitude = 20;  // Amplitude of Gaussian bump
-        float sigma = 20;  // Standard deviation of Gaussian bump
+        float amplitude = 50;  // Amplitude of Gaussian bump
+        float sigma = 30;  // Standard deviation of Gaussian bump
         float centerX = xSize / 2f;  // X-coordinate of center of Gaussian bump
         float centerZ = zSize / 2f;  // Z-coordinate of center of Gaussian bump
         
+        depthMapBuffer.GetData(depthMap);
         for (int i = 0, z = 0; z <= zSize; z++)
         {
             for (int x = 0; x <= xSize; x++)
@@ -165,12 +169,18 @@ public class Flux3 : MonoBehaviour
                 float distance = Mathf.Sqrt((x - centerX) * (x - centerX) + (z - centerZ) * (z - centerZ));
                 float height = amplitude * Mathf.Exp(-distance * distance / (2f * sigma * sigma));
                 depthMap[i] += height;
-                vertices[i].y = depthMap[i] + heightMap[i];  
                 i++;
             }
         }
+        
+        // for (int z = 200; z < 300; z++)
+        // {
+        //     for (int x = 200; x < 300 ; x++)
+        //     {
+        //         depthMap[x + z * (xSize + 1)] += 20f;
+        //     }
+        // }
         depthMapBuffer.SetData(depthMap);
-        verticesBuffer.SetData(vertices);
     }
 
     void OnDestroy()
@@ -179,5 +189,7 @@ public class Flux3 : MonoBehaviour
         velocityBuffer.Release();
         hSumsBuffer.Release();
         fluxMapBuffer.Release();
+        heightMapBuffer.Release();
+        depthMapBuffer.Release();
     }
 }
