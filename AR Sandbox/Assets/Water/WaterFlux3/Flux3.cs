@@ -5,20 +5,24 @@ using Palmmedia.ReportGenerator.Core.Parser.Analysis;
 using UnityEngine;
 
 [RequireComponent(typeof(MeshFilter))]
-public class WaterSimulator : MonoBehaviour
+public class Flux3 : MonoBehaviour
 {
     Mesh mesh;
     Vector3[] vertices;
+    float[] heightMap;
+    float[] depthMap;
+    Vector4[] fluxMap;
 
     int[] triangles;
     public int xSize = 500;
     public int zSize = 500;
-    public float wavespeed = 2f;
-    public float spacing = 1f;
-    public float posDamping = 1f;
-    public float velDamping = 0.3f;
+    float wavespeed = 2f;
+    float spacing = 1f;
+    float posDamping = 1f;
+    float velDamping = 0.3f;
     float dt;
-    float c;
+    public float c = 1f;
+    public float a = 1f;
     float pd;
     float vd;
 
@@ -26,6 +30,9 @@ public class WaterSimulator : MonoBehaviour
     ComputeBuffer verticesBuffer;
     ComputeBuffer velocityBuffer;
     ComputeBuffer hSumsBuffer;
+    ComputeBuffer fluxMapBuffer;
+    ComputeBuffer heightMapBuffer;
+    ComputeBuffer depthMapBuffer;
 
     // Start is called before the first frame update
     void Start()
@@ -50,7 +57,6 @@ public class WaterSimulator : MonoBehaviour
     void UpdateHeights()
     {
         dt = Time.deltaTime;
-        c = wavespeed * wavespeed / spacing / spacing;
         pd = Mathf.Min(posDamping * Time.deltaTime, 1.0f);
         vd = Mathf.Max(0f, 1f - velDamping * Time.deltaTime);
 
@@ -60,6 +66,7 @@ public class WaterSimulator : MonoBehaviour
         WaterCS.SetFloat("vd", vd);
         WaterCS.SetFloat("xSize", xSize);
         WaterCS.SetFloat("zSize", zSize);
+        WaterCS.SetFloat("a", a);
 
         WaterCS.Dispatch(0, 512/8, 512/8, 1);
         WaterCS.Dispatch(1, 512/8, 512/8, 1);
@@ -75,15 +82,27 @@ public class WaterSimulator : MonoBehaviour
     void InitMesh()
     {
         vertices = new Vector3[(xSize + 1) * (zSize + 1)];
+        fluxMap = new Vector4[(xSize + 1) * (zSize + 1)];
+        depthMap = new float[(xSize + 1) * (zSize + 1)];
+        heightMap = new float[(xSize + 1) * (zSize + 1)];
 
         verticesBuffer = new ComputeBuffer(vertices.Length, sizeof(float) * 3);
         velocityBuffer = new ComputeBuffer(vertices.Length, sizeof(float));
         hSumsBuffer = new ComputeBuffer(vertices.Length, sizeof(float));
+        fluxMapBuffer = new ComputeBuffer(vertices.Length, sizeof(float) * 4);
+        heightMapBuffer = new ComputeBuffer(vertices.Length, sizeof(float));
+        depthMapBuffer = new ComputeBuffer(vertices.Length, sizeof(float));
 
         WaterCS.SetBuffer(0, "vertices", verticesBuffer);
         WaterCS.SetBuffer(1, "vertices", verticesBuffer);
         WaterCS.SetBuffer(0, "velocity", velocityBuffer);
         WaterCS.SetBuffer(1, "velocity", velocityBuffer);
+        WaterCS.SetBuffer(0, "fluxMap", fluxMapBuffer);
+        WaterCS.SetBuffer(1, "fluxMap", fluxMapBuffer);
+        WaterCS.SetBuffer(0, "heightMap", heightMapBuffer);
+        WaterCS.SetBuffer(1, "heightMap", heightMapBuffer);
+        WaterCS.SetBuffer(0, "depthMap", depthMapBuffer);
+        WaterCS.SetBuffer(1, "depthMap", depthMapBuffer);
         WaterCS.SetBuffer(0, "hSums", hSumsBuffer);
         WaterCS.SetBuffer(1, "hSums", hSumsBuffer);
 
@@ -91,7 +110,11 @@ public class WaterSimulator : MonoBehaviour
         {
             for (int x = 0; x <= xSize; x++)
             {
-                vertices[i] = new Vector3(x, 1, z);
+                vertices[i] = new Vector3(x, 0, z);
+                fluxMap[i] = new Vector4(0, 0, 0, 0);
+                depthMap[i] = 10;
+                heightMap[i] = 0;
+                vertices[i].y = heightMap[i] + depthMap[i];
                 i++;
             }
         }
@@ -100,6 +123,9 @@ public class WaterSimulator : MonoBehaviour
         mesh.vertices = vertices;
         mesh.triangles = triangles;
         verticesBuffer.SetData(vertices);
+        fluxMapBuffer.SetData(fluxMap);
+        heightMapBuffer.SetData(heightMap);
+        depthMapBuffer.SetData(depthMap);
     }
 
     void CreateTriangles()
@@ -127,7 +153,7 @@ public class WaterSimulator : MonoBehaviour
 
     void AddBump()
     {
-        float amplitude = 50;  // Amplitude of Gaussian bump
+        float amplitude = 20;  // Amplitude of Gaussian bump
         float sigma = 20;  // Standard deviation of Gaussian bump
         float centerX = xSize / 2f;  // X-coordinate of center of Gaussian bump
         float centerZ = zSize / 2f;  // Z-coordinate of center of Gaussian bump
@@ -138,10 +164,12 @@ public class WaterSimulator : MonoBehaviour
             {
                 float distance = Mathf.Sqrt((x - centerX) * (x - centerX) + (z - centerZ) * (z - centerZ));
                 float height = amplitude * Mathf.Exp(-distance * distance / (2f * sigma * sigma));
-                vertices[i].y += height;
+                depthMap[i] += height;
+                vertices[i].y = depthMap[i] + heightMap[i];  
                 i++;
             }
         }
+        depthMapBuffer.SetData(depthMap);
         verticesBuffer.SetData(vertices);
     }
 
@@ -150,5 +178,6 @@ public class WaterSimulator : MonoBehaviour
         verticesBuffer.Release();
         velocityBuffer.Release();
         hSumsBuffer.Release();
+        fluxMapBuffer.Release();
     }
 }

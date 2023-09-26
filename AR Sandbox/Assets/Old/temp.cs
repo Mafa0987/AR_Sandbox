@@ -9,7 +9,7 @@ public class WaterSimulator_temp : MonoBehaviour
 {
     Mesh mesh;
     Vector3[] vertices;
-    public MeshGeneratorTexture terrain;
+    public TerrainGen terrain;
     public ComputeShader WaterCS;
     ComputeBuffer verticesBuffer;
     float[] heightmap;

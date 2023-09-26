@@ -14,6 +14,9 @@ static float4 Red = float4(0.5, 0, 0, 1);
 float maxTerrainHeight;
 float minTerrainHeight;
 
+int numVerticesX;
+int numVerticesZ;
+
 float4 GetColor(float height)
 {
     if (height <= 0.4)
@@ -29,10 +32,10 @@ float4 GetColor(float height)
 [numthreads(8,8,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
-    if (id.x >= 500+1 || id.y >= 500+1)
+    if (id.x >= numVerticesX || id.y >= numVerticesZ)
         return;
 
-    int vert = id.x+id.y*(501);
+    int vert = id.x+id.y*(numVerticesX);
     vertices[vert] = float3(id.x, heightmap[vert], id.y);
 
     float height = (heightmap[vert]-minTerrainHeight)/(maxTerrainHeight);
@@ -79,10 +82,10 @@ void DrawContour(float limit, RWStructuredBuffer<float3> vertices, float maxTerr
     int2 b = int2(idx * 4 + 4, idy * 4 + 2);
     int2 c = int2(idx * 4 + 2, idy * 4 + 4);
     int2 d = int2(idx*4, idy*4+2);
-    state = GetState(CheckHeight((vertices[idx * 4 + idy * 4 * 501].y - minTerrainHeight) / maxTerrainHeight, limit), 
-    CheckHeight((vertices[idx * 4 + 4 + idy * 4 *501].y - minTerrainHeight) /maxTerrainHeight, limit), 
-    CheckHeight((vertices[idx  *4 + 4 + (idy * 4 + 4) * 501].y - minTerrainHeight) /maxTerrainHeight, limit), 
-    CheckHeight((vertices[idx * 4 + (idy * 4 + 4) *501].y - minTerrainHeight) /maxTerrainHeight, limit));
+    state = GetState(CheckHeight((vertices[idx * 4 + idy * 4 * numVerticesX].y - minTerrainHeight) / maxTerrainHeight, limit), 
+    CheckHeight((vertices[idx * 4 + 4 + idy * 4 * numVerticesX].y - minTerrainHeight) /maxTerrainHeight, limit), 
+    CheckHeight((vertices[idx  *4 + 4 + (idy * 4 + 4) * numVerticesX].y - minTerrainHeight) /maxTerrainHeight, limit), 
+    CheckHeight((vertices[idx * 4 + (idy * 4 + 4) * numVerticesX].y - minTerrainHeight) /maxTerrainHeight, limit));
     [branch] switch(state)
     {
         case 1:

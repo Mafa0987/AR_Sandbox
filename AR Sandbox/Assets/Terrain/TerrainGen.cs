@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(MeshFilter))]
-public class MeshGeneratorTexture : MonoBehaviour
+public class TerrainGen : MonoBehaviour
 {
     public Material material;
     public ComputeShader computeShader;
@@ -20,8 +20,8 @@ public class MeshGeneratorTexture : MonoBehaviour
 
 
     public float[] heightmap;
-    public int xSize = 500;
-    public int zSize = 500;
+    public int numVerticesX = 501;
+    public int numVerticesZ = 501;
 
     public float amplitude1 = 1f;
     public float amplitude2 = 1f;
@@ -70,10 +70,10 @@ public class MeshGeneratorTexture : MonoBehaviour
 
     void InitShader()
     {
-        vertices = new Vector3[(xSize + 1) * (zSize + 1)];
+        vertices = new Vector3[numVerticesX * numVerticesZ];
         verticesBuffer = new ComputeBuffer(vertices.Length, sizeof(float) * 3);
         heightBuffer = new ComputeBuffer(heightmap.Length, sizeof(float));
-        colors = new RenderTexture(501, 501, 24);
+        colors = new RenderTexture(numVerticesX, numVerticesZ, 24);
         colors.enableRandomWrite = true;
         colors.Create();
 
@@ -83,23 +83,25 @@ public class MeshGeneratorTexture : MonoBehaviour
         computeShader.SetBuffer(1, "heightmap", heightBuffer);
         computeShader.SetBuffer(1, "vertices", verticesBuffer);
         computeShader.SetTexture(1, "colors", colors);
+        computeShader.SetInt("numVerticesX", numVerticesX);
+        computeShader.SetInt("numVerticesZ", numVerticesZ);
     }
 
     void CreateTriangles()
     {
-        triangles = new int[xSize * zSize * 6];
+        triangles = new int[(numVerticesX-1) * (numVerticesZ-1) * 6];
         int vert = 0;
         int tris = 0;
-        for(int z = 0; z < zSize; z++)
+        for(int z = 0; z < numVerticesZ-1; z++)
         {
-            for (int x = 0; x < xSize; x++)
+            for (int x = 0; x < numVerticesX-1; x++)
             {
                 triangles[tris + 0] = vert + 0;
-                triangles[tris + 1] = vert + xSize + 1;
+                triangles[tris + 1] = vert + numVerticesX;
                 triangles[tris + 2] = vert + 1;
                 triangles[tris + 3] = vert + 1;
-                triangles[tris + 4] = vert + xSize + 1;
-                triangles[tris + 5] = vert + xSize + 2;
+                triangles[tris + 4] = vert + numVerticesX;
+                triangles[tris + 5] = vert + numVerticesX + 1;
 
                 vert++;
                 tris += 6;
@@ -110,10 +112,10 @@ public class MeshGeneratorTexture : MonoBehaviour
 
     void CreateHeightmap()
     {
-        heightmap = new float[501*501];
-        for (int i = 0, z = 0; z <= zSize; z++)
+        heightmap = new float[numVerticesX * numVerticesZ];
+        for (int i = 0, z = 0; z < numVerticesZ; z++)
         {
-            for (int x = 0; x <= xSize; x++)
+            for (int x = 0; x < numVerticesX; x++)
             {
                 float y =
                     amplitude1 * Mathf.PerlinNoise(x * frequency1,z * frequency1)
@@ -132,12 +134,12 @@ public class MeshGeneratorTexture : MonoBehaviour
 
     void CreateUV()
     {
-        uvs = new Vector2[(xSize + 1) * (zSize + 1)];
-        for (int i = 0, z = 0; z <= zSize; z++)
+        uvs = new Vector2[numVerticesX * numVerticesZ];
+        for (int i = 0, z = 0; z < numVerticesZ; z++)
         {
-            for (int x = 0; x <= xSize; x++)
+            for (int x = 0; x < numVerticesX; x++)
             {
-                uvs[i] = new Vector2((float)x / xSize, (float)z / zSize);
+                uvs[i] = new Vector2((float)x / (numVerticesX-1), (float)z / (numVerticesZ-1));
                 i++;
             }
         }

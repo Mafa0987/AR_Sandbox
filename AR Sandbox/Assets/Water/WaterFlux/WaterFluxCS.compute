@@ -1,0 +1,71 @@
+#pragma kernel FluxComputation
+#pragma kernel FluxApply
+
+#define SUM_COMPS(v) ((v.r + v.g + v.b + v.a))
+#define LDIR(col) (col.r)
+#define RDIR(col) (col.g)
+#define TDIR(col) (col.b)
+#define BDIR(col) (col.a)
+
+float numVerticesX;
+float numVerticesZ;
+float dt;
+float g;
+float pipeArea;
+float pipeLength;
+float2 cellSize;
+
+RWStructuredBuffer<float3> waterSurface;
+RWStructuredBuffer<float> waterHeights;
+RWStructuredBuffer<float> terrainHeights;
+RWStructuredBuffer<float4> fluxMap;
+
+[numthreads(8,8,1)]
+void FluxComputation (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= numVerticesX || id.y >= numVerticesZ)
+        return;
+
+    int vert = id.x + id.y * numVerticesX;
+
+    float terrainHeight = terrainHeights[vert];
+    float waterHeight   = waterHeights[vert];
+    float terrainHeightLeft  = id.x > 0                ? terrainHeights[vert-1]             : terrainHeight;
+    float waterHeightLeft    = id.x > 0                ? waterHeights[vert-1]               : waterHeight;
+    float terrainHeightRight = id.x < (numVerticesX-1) ? terrainHeights[vert+1]             : terrainHeight;
+    float waterHeightRight   = id.x < (numVerticesX-1) ? waterHeights[vert+1]               : waterHeight;
+    float terrainHeightUp    = id.y < (numVerticesZ-1) ? terrainHeights[vert+numVerticesX]  : terrainHeight;
+    float waterHeightUp      = id.y < (numVerticesZ-1) ? waterHeights[vert+numVerticesX]    : waterHeight;
+    float terrainHeightDown  = id.y > 0                ? terrainHeights[vert-numVerticesX]  : terrainHeight;
+    float waterHeightDown    = id.y > 0                ? waterHeights[vert-numVerticesX]    : waterHeight;
+
+    float4 outputFlux = fluxMap[vert];
+
+    float4 heightDifference = terrainHeight + waterHeight - float4(terrainHeightLeft + waterHeightLeft, terrainHeightRight + waterHeightRight, terrainHeightUp + waterHeightUp, terrainHeightDown + waterHeightDown);
+
+    outputFlux = max(0, outputFlux + dt * g * pipeArea * heightDifference / pipeLength);
+    outputFlux *= min(1, waterHeight * cellSize.x * cellSize.y / (SUM_COMPS(outputFlux) * dt));
+
+    fluxMap[vert] = max(0, outputFlux);
+}
+
+[numthreads(8,8,1)]
+void FluxApply (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= numVerticesX || id.y >= numVerticesZ)
+        return;
+
+    int vert = id.x + id.y * numVerticesX;
+    float4 outputFlux = fluxMap[vert];
+    float4 inputFlux = float4(
+        id.x > 0 ? fluxMap[vert-1].g : 0,
+        id.x < (numVerticesX-1) ? fluxMap[vert+1].r : 0,
+        id.y < (numVerticesZ-1) ? fluxMap[vert+numVerticesX].a : 0,
+        id.y > 0 ? fluxMap[vert-numVerticesX].b : 0
+    );
+
+    float volumeDelta = SUM_COMPS(inputFlux) - SUM_COMPS(outputFlux);
+
+    waterHeights[vert] += dt * volumeDelta / (cellSize.x * cellSize.y);
+    waterSurface[vert].y = waterHeights[vert] + terrainHeights[vert];
+}

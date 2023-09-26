@@ -252,8 +252,8 @@ MonoBehaviour:
   computeShader: {fileID: 7200000, guid: 5d7c556039d5ae94fb1ff525f195320e, type: 3}
   colors: {fileID: 0}
   heightmap: []
-  xSize: 500
-  zSize: 500
+  numVerticesX: 501
+  numVerticesZ: 501
   amplitude1: 0
   amplitude2: 0
   amplitude3: 9
@@ -511,16 +511,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 1244409261}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ef62b24b139577a418c68479fb45edb4, type: 3}
+  m_Script: {fileID: 11500000, guid: 7279da8c089ab24499857b579d45bd78, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   xSize: 500
   zSize: 500
-  wavespeed: 25
-  spacing: 1
-  posDamping: 1
-  velDamping: 0.3
-  WaterCS: {fileID: 7200000, guid: 24421dd3517d6ad40abcf81254ab8385, type: 3}
+  c: 500
+  a: 1
+  WaterCS: {fileID: 7200000, guid: a11353868db0a4147b0b57b5b706ec5b, type: 3}
 --- !u!1 &1960209606
 GameObject:
   m_ObjectHideFlags: 0
