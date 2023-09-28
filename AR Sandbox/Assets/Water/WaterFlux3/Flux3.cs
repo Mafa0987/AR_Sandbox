@@ -46,7 +46,7 @@ public class Flux3 : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
@@ -58,7 +58,7 @@ public class Flux3 : MonoBehaviour
 
     void UpdateHeights()
     {
-        dt = Time.deltaTime;
+        dt = Time.fixedDeltaTime;
         pd = Mathf.Min(posDamping * Time.deltaTime, 1.0f);
         vd = Mathf.Max(0f, 1f - velDamping * Time.deltaTime);
 
@@ -154,32 +154,41 @@ public class Flux3 : MonoBehaviour
         }
     }
 
+    // void AddBump()
+    // {
+    //     float amplitude = 50;  // Amplitude of Gaussian bump
+    //     float sigma = 30;  // Standard deviation of Gaussian bump
+    //     float centerX = xSize / 2f;  // X-coordinate of center of Gaussian bump
+    //     float centerZ = zSize / 2f;  // Z-coordinate of center of Gaussian bump
+        
+    //     depthMapBuffer.GetData(depthMap);
+    //     for (int i = 0, z = 0; z <= zSize; z++)
+    //     {
+    //         for (int x = 0; x <= xSize; x++)
+    //         {
+    //             float distance = Mathf.Sqrt((x - centerX) * (x - centerX) + (z - centerZ) * (z - centerZ));
+    //             float height = amplitude * Mathf.Exp(-distance * distance / (2f * sigma * sigma));
+    //             depthMap[i] += height;
+    //             i++;
+    //         }
+    //     }
+    //     depthMapBuffer.SetData(depthMap);
+    // }
+
     void AddBump()
     {
-        float amplitude = 50;  // Amplitude of Gaussian bump
-        float sigma = 30;  // Standard deviation of Gaussian bump
-        float centerX = xSize / 2f;  // X-coordinate of center of Gaussian bump
-        float centerZ = zSize / 2f;  // Z-coordinate of center of Gaussian bump
-        
         depthMapBuffer.GetData(depthMap);
-        for (int i = 0, z = 0; z <= zSize; z++)
+        for (int z = 0; z <= zSize; z++)
         {
             for (int x = 0; x <= xSize; x++)
             {
-                float distance = Mathf.Sqrt((x - centerX) * (x - centerX) + (z - centerZ) * (z - centerZ));
-                float height = amplitude * Mathf.Exp(-distance * distance / (2f * sigma * sigma));
-                depthMap[i] += height;
-                i++;
+                float circle = (x - 250) * (x - 250) + (z - 250) * (z - 250);
+                if (circle < 10000)
+                {
+                    depthMap[x + z * (xSize + 1)] += 20f;
+                }
             }
         }
-        
-        // for (int z = 200; z < 300; z++)
-        // {
-        //     for (int x = 200; x < 300 ; x++)
-        //     {
-        //         depthMap[x + z * (xSize + 1)] += 20f;
-        //     }
-        // }
         depthMapBuffer.SetData(depthMap);
     }
 
