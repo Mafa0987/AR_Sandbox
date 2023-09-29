@@ -348,7 +348,7 @@ GameObject:
   - component: {fileID: 847163005}
   - component: {fileID: 847163004}
   - component: {fileID: 847163003}
-  - component: {fileID: 847163002}
+  - component: {fileID: 847163006}
   m_Layer: 0
   m_Name: TerrainTexture
   m_TagString: Untagged
@@ -356,31 +356,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &847163002
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 847163001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 65e209ae477373547a16a003ef1adc4a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  material: {fileID: 2100000, guid: a1388ecf5c4a5924791e5a55ead42b2a, type: 2}
-  computeShader: {fileID: 7200000, guid: 5d7c556039d5ae94fb1ff525f195320e, type: 3}
-  colors: {fileID: 0}
-  heightmap: []
-  numVerticesX: 501
-  numVerticesZ: 501
-  amplitude1: 0
-  amplitude2: 0
-  amplitude3: 9
-  frequency1: 0
-  frequency2: 0
-  frequency3: 0.009
-  noiseStrength: 12
 --- !u!23 &847163003
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -446,6 +421,31 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &847163006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 847163001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 644736baf63aefd44bc88c5c629a6808, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  material: {fileID: 2100000, guid: a1388ecf5c4a5924791e5a55ead42b2a, type: 2}
+  computeShader: {fileID: 7200000, guid: 05d0ca29f7d6cc14a83f394176b51d2f, type: 3}
+  colors: {fileID: 0}
+  heightmap: []
+  numVerticesX: 501
+  numVerticesZ: 501
+  amplitude1: 1
+  amplitude2: 1
+  amplitude3: 9
+  frequency1: 1
+  frequency2: 1
+  frequency3: 0.009
+  noiseStrength: 12
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0
@@ -659,7 +659,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!23 &1244409262
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -734,15 +734,22 @@ MonoBehaviour:
   m_GameObject: {fileID: 1244409261}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7279da8c089ab24499857b579d45bd78, type: 3}
+  m_Script: {fileID: 11500000, guid: 644736baf63aefd44bc88c5c629a6808, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  terrain: {fileID: 847163002}
-  xSize: 500
-  zSize: 500
-  c: 500
-  a: 1
-  WaterCS: {fileID: 7200000, guid: a11353868db0a4147b0b57b5b706ec5b, type: 3}
+  material: {fileID: 0}
+  computeShader: {fileID: 7200000, guid: 05d0ca29f7d6cc14a83f394176b51d2f, type: 3}
+  colors: {fileID: 0}
+  heightmap: []
+  numVerticesX: 501
+  numVerticesZ: 501
+  amplitude1: 1
+  amplitude2: 1
+  amplitude3: 1
+  frequency1: 1
+  frequency2: 1
+  frequency3: 1
+  noiseStrength: 1
 --- !u!1 &1617112939
 GameObject:
   m_ObjectHideFlags: 0
