@@ -84,17 +84,21 @@ void DrawPixel(int x, int y, RWTexture2D<float4> colors)
     }
 }
 
-void DrawLine(int x1, int y1, int x2, int y2, RWTexture2D<float4> colors)
+void DrawLine(float x1, float y1, float x2, float y2, RWTexture2D<float4> colors)
 {
+    x1 = round(x1);
+    y1 = round(y1);
+    x2 = round(x2);
+    y2 = round(y2);
     int x_diff = x2 - x1;
     int y_diff = y2 - y1;
     int steps = max(abs(x_diff), abs(y_diff));
     if (steps == 0)
         return;
-    float xstep = x_diff/steps;
-    float ystep = y_diff/steps;
-    float x = x1;
-    float y = y1;
+    float xstep = (float)x_diff / (float)steps;
+    float ystep = (float)y_diff/ (float)steps;
+    float x = (float)x1;
+    float y = (float)y1;
     for (int i = 0; i <= steps; i++)
     {
         //colors[uint2(round(x), round(y))] = float4(0, 0, 0, 1);
@@ -133,10 +137,14 @@ void DrawContour(float limit, RWStructuredBuffer<float3> vertices, float maxTerr
     float c_val = (vertices[idx * hrez + hrez + (idy * hrez + hrez) * numVerticesX].y - minTerrainHeight) / maxTerrainHeight;
     float d_val = (vertices[idx * hrez + (idy * hrez + hrez) * numVerticesX].y - minTerrainHeight) / maxTerrainHeight;
 
-    int2 a = int2(idx * crez + crez / 2, idy * crez);
-    int2 b = int2(idx * crez + crez, idy * crez + crez / 2);
-    int2 c = int2(idx * crez + crez / 2, idy * crez + crez);
-    int2 d = int2(idx * crez, idy * crez + crez / 2);
+    float amt = (limit - a_val) / (b_val - a_val);
+    float2 a = float2(lerp(idx*crez, idx*crez+crez, amt), idy * crez);
+    amt = (limit - b_val) / (c_val - b_val);
+    float2 b = float2(idx * crez + crez, lerp(idy*crez, idy*crez+crez, amt));
+    amt = (limit - d_val) / (c_val - d_val);
+    float2 c = float2(lerp(idx*crez, idx*crez+crez, amt), idy * crez + crez);
+    amt = (limit - a_val) / (d_val - a_val);
+    float2 d = float2(idx * crez, lerp(idy*crez, idy*crez+crez, amt));
 
     state = GetState(CheckHeight(a_val, limit), 
     CheckHeight(b_val, limit), 
@@ -196,11 +204,17 @@ void CSContour (uint3 id : SV_DispatchThreadID)
 {
     if (id.x == 125 || id.y == 125)
         return;
+    
+    // if (id.x != 0 && id.y != 0)
+    //     return;
+    
+    // DrawLine(0, 0, 2000, 1500, colors);
 
     for(int i = 0; i < 21; i++)
     {
         DrawContour((float)i/20.0, vertices, maxTerrainHeight, minTerrainHeight, colors, id.x, id.y);
     }
+
 
 }
 

@@ -13,7 +13,7 @@ public class Flux3 : MonoBehaviour
     float[] depthMap;
     Vector4[] fluxMap;
 
-    public TerrainGen terrain;
+    public TerrainGenV2 terrain;
 
     int[] triangles;
     public int xSize = 500;

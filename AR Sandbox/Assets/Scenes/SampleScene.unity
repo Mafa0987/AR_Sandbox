@@ -414,7 +414,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 847163001}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -506,8 +506,8 @@ Camera:
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 100
-  orthographic: 0
-  orthographic size: 50
+  orthographic: 1
+  orthographic size: 250
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -531,13 +531,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.5642468, y: 0, z: 0, w: 0.82560617}
-  m_LocalPosition: {x: 250, y: 220, z: 80}
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 250, y: 220, z: 250}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 68.7, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!1 &1200049904
 GameObject:
   m_ObjectHideFlags: 0
@@ -659,7 +659,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!23 &1244409262
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -734,22 +734,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 1244409261}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 644736baf63aefd44bc88c5c629a6808, type: 3}
+  m_Script: {fileID: 11500000, guid: 7279da8c089ab24499857b579d45bd78, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  material: {fileID: 0}
-  computeShader: {fileID: 7200000, guid: 05d0ca29f7d6cc14a83f394176b51d2f, type: 3}
-  colors: {fileID: 0}
-  heightmap: []
-  numVerticesX: 501
-  numVerticesZ: 501
-  amplitude1: 1
-  amplitude2: 1
-  amplitude3: 1
-  frequency1: 1
-  frequency2: 1
-  frequency3: 1
-  noiseStrength: 1
+  terrain: {fileID: 847163006}
+  xSize: 500
+  zSize: 500
+  c: 500
+  a: 1
+  WaterCS: {fileID: 7200000, guid: a11353868db0a4147b0b57b5b706ec5b, type: 3}
 --- !u!1 &1617112939
 GameObject:
   m_ObjectHideFlags: 0
