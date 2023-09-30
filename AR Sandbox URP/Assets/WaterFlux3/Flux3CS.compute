@@ -25,12 +25,12 @@ void FindVelocity (uint3 id : SV_DispatchThreadID)
     int vert = id.x + id.y * (xSize + 1);
     float4 flux = fluxMap[vert];
     float depth = depthMap[vert];
-    float current = depth + heightMap[vert];
+    float current = depth + heightMap[vert] - 0.1;
 
-    float top = id.y < zSize ? (depthMap[vert + xSize + 1] + heightMap[vert + xSize + 1]) : current;
-    float bottom = id.y > 0 ? (depthMap[vert - xSize - 1] + heightMap[vert - xSize - 1]) : current;
-    float left = id.x > 0 ? (depthMap[vert - 1] + heightMap[vert - 1]) : current;
-    float right = id.x < xSize ? (depthMap[vert + 1] + heightMap[vert + 1]) : current;
+    float top = id.y < zSize ? (depthMap[vert + xSize + 1] + heightMap[vert + xSize + 1] - 0.1) : current;
+    float bottom = id.y > 0 ? (depthMap[vert - xSize - 1] + heightMap[vert - xSize - 1] - 0.1) : current;
+    float left = id.x > 0 ? (depthMap[vert - 1] + heightMap[vert - 1] - 0.1) : current;
+    float right = id.x < xSize ? (depthMap[vert + 1] + heightMap[vert + 1] - 0.1) : current;
 
     float dtop = current - top;
     float dbottom = current - bottom;
@@ -77,5 +77,5 @@ void UpdateHeights (uint3 id : SV_DispatchThreadID)
     float deltavolume = influx - outflux;
 
     depthMap[vert] += dt * deltavolume / a;
-    vertices[vert].y = depthMap[vert] + heightMap[vert];
+    vertices[vert].y = depthMap[vert] + heightMap[vert] - 0.1;
 }

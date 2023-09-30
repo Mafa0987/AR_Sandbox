@@ -116,7 +116,7 @@ public class Flux3 : MonoBehaviour
                 fluxMap[i] = new Vector4(0, 0, 0, 0);
                 depthMap[i] = 0;
                 //heightMap[i] = x/10f;
-                vertices[i].y = heightMap[i] + depthMap[i];
+                vertices[i].y = heightMap[i] - 0.1f + depthMap[i];
                 i++;
             }
         }
