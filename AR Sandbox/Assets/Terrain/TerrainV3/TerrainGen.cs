@@ -23,13 +23,14 @@ public class TerrainGenV3 : MonoBehaviour
     public int xSize = 512;
     public int zSize = 424;
 
+    public int kinectheight = 2000;
+    public int maxHeight = 1000;
+    public int minHeight = 0;
+
+
+
     public float amplitude1 = 1f;
-    public float amplitude2 = 1f;
-    public float amplitude3 = 1f;
     public float frequency1 = 1f;
-    public float frequency2 = 1f;
-    public float frequency3 = 1f;
-    public float noiseStrength = 1f;
 
     float minTerrainHeight;
     float maxTerrainHeight;
@@ -117,12 +118,14 @@ public class TerrainGenV3 : MonoBehaviour
         {
             for (int x = 0; x < xSize; x++)
             {
-                float y =
-                    amplitude1 * Mathf.PerlinNoise(x * frequency1,z * frequency1)
-                    + amplitude2 * Mathf.PerlinNoise(x * frequency2, z * frequency2)
-                    + amplitude3 * Mathf.PerlinNoise(x * frequency3, z * frequency3)
-                        * noiseStrength;
+                float y = amplitude1 * Mathf.PerlinNoise(x * frequency1,z * frequency1) + 1000;
+                y = (float)Math.Round(y, 0);
                 heightmap[i] = y;
+                if (x == 0 & z == 0)
+                {
+                    minTerrainHeight = y;
+                    maxTerrainHeight = y;
+                }
                 if (y > maxTerrainHeight)
                     maxTerrainHeight = y;
                 if (y < minTerrainHeight)

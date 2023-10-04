@@ -2,6 +2,8 @@
 #pragma kernel CSMain
 #pragma kernel CSContour
 
+#define norm(height) ((height-0)/(1000-0))
+
 RWStructuredBuffer<float3> vertices;
 StructuredBuffer<float> heightmap;
 RWTexture2D<float4> colors;
@@ -45,12 +47,14 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         return;
 
     int vert = id.x+id.y*(xSize);
-    vertices[vert] = float3(id.x, heightmap[vert], id.y);
+    float height = 2000 - heightmap[vert];
+    vertices[vert] = float3(id.x, height, id.y);
 
-    float height = (heightmap[vert]-minTerrainHeight)/(maxTerrainHeight);
+    //float height = (heightmap[vert]-minTerrainHeight)/(maxTerrainHeight-minTerrainHeight);
+    float height_norm = norm(height);
 
     //colors[id.xy] = GetColor(height);
-    ColorSquare(id.xy*4, 4, GetColor(height));
+    ColorSquare(id.xy*4, 4, GetColor(height_norm));
 }
 
 int CheckHeight(float height, float limit)
@@ -132,10 +136,10 @@ void DrawContour(float limit, RWStructuredBuffer<float3> vertices, float maxTerr
     int hrez = 4;
     int crez = 16;
 
-    float a_val = (vertices[idx * hrez + idy * hrez * xSize].y - minTerrainHeight) / maxTerrainHeight;
-    float b_val = (vertices[idx * hrez + hrez + idy * hrez * xSize].y - minTerrainHeight) / maxTerrainHeight;
-    float c_val = (vertices[idx * hrez + hrez + (idy * hrez + hrez) * xSize].y - minTerrainHeight) / maxTerrainHeight;
-    float d_val = (vertices[idx * hrez + (idy * hrez + hrez) * xSize].y - minTerrainHeight) / maxTerrainHeight;
+    float a_val = norm(vertices[idx * hrez + idy * hrez * xSize].y);
+    float b_val = norm(vertices[idx * hrez + hrez + idy * hrez * xSize].y);
+    float c_val = norm(vertices[idx * hrez + hrez + (idy * hrez + hrez) * xSize].y);
+    float d_val = norm(vertices[idx * hrez + (idy * hrez + hrez) * xSize].y);
 
     float amt = (limit - a_val) / (b_val - a_val);
     float2 a = float2(lerp(idx*crez, idx*crez+crez, amt), idy * crez);
