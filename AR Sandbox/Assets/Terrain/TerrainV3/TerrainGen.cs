@@ -8,7 +8,10 @@ public class TerrainGenV3 : MonoBehaviour
 {
     public Material material;
     public ComputeShader computeShader;
+    public MultiSourceManager msm;
     public RenderTexture colors;
+    public int xCut = 160;
+    public int zCut = 100;
 
     Mesh mesh;
     Vector3[] vertices;
@@ -19,7 +22,9 @@ public class TerrainGenV3 : MonoBehaviour
     ComputeBuffer heightBuffer;
 
 
-    public float[] heightmap;
+    //public float[] heightmap;
+    public ushort[] heightmapShort;
+    public int[] heightmap;
     public int xSize = 512;
     public int zSize = 424;
 
@@ -32,12 +37,14 @@ public class TerrainGenV3 : MonoBehaviour
     public float amplitude1 = 1f;
     public float frequency1 = 1f;
 
-    float minTerrainHeight;
-    float maxTerrainHeight;
+    float minTerrainHeight = 1200;
+    float maxTerrainHeight = 2000;
 
     // Start is called before the first frame update
     void Start()
     {
+        xSize -= xCut * 2;
+        zSize -= zCut * 2;
         CreateTriangles();
         CreateHeightmap();
         CreateUV();
@@ -55,6 +62,7 @@ public class TerrainGenV3 : MonoBehaviour
 
     void CreateShapeGPU()
     {
+        CreateHeightmap();
         heightBuffer.SetData(heightmap);
         computeShader.SetFloat("maxTerrainHeight", maxTerrainHeight);
         computeShader.SetFloat("minTerrainHeight", minTerrainHeight);
@@ -73,7 +81,7 @@ public class TerrainGenV3 : MonoBehaviour
     {
         vertices = new Vector3[xSize * zSize];
         verticesBuffer = new ComputeBuffer(vertices.Length, sizeof(float) * 3);
-        heightBuffer = new ComputeBuffer(heightmap.Length, sizeof(float));
+        heightBuffer = new ComputeBuffer(heightmap.Length, sizeof(int));
         colors = new RenderTexture(xSize*4, zSize*4, 24);
         colors.enableRandomWrite = true;
         colors.Create();
@@ -86,6 +94,8 @@ public class TerrainGenV3 : MonoBehaviour
         computeShader.SetTexture(1, "colors", colors);
         computeShader.SetInt("xSize", xSize);
         computeShader.SetInt("zSize", zSize);
+        computeShader.SetInt("xCut", xCut);
+        computeShader.SetInt("zCut", zCut);
     }
 
     void CreateTriangles()
@@ -113,26 +123,47 @@ public class TerrainGenV3 : MonoBehaviour
 
     void CreateHeightmap()
     {
-        heightmap = new float[xSize * zSize];
-        for (int i = 0, z = 0; z < zSize; z++)
+        heightmapShort = msm.GetDepthData();
+        heightmap = new int[(512-xCut*2) * (424-zCut*2)];
+
+        int j = 0;
+        for(int i = 0; i < heightmapShort.Length; i++)
         {
-            for (int x = 0; x < xSize; x++)
+            int x = i % 512;
+            int y = i / 424;
+
+            if (x < xCut | x > 512 - xCut | y < zCut | y > 424 - zCut)
             {
-                float y = amplitude1 * Mathf.PerlinNoise(x * frequency1,z * frequency1) + 1000;
-                y = (float)Math.Round(y, 0);
-                heightmap[i] = y;
-                if (x == 0 & z == 0)
-                {
-                    minTerrainHeight = y;
-                    maxTerrainHeight = y;
-                }
-                if (y > maxTerrainHeight)
-                    maxTerrainHeight = y;
-                if (y < minTerrainHeight)
-                    minTerrainHeight = y;
-                i++;
+                int u = 0;
+            }
+            else
+            {
+                heightmap[j] = heightmapShort[i];
+                j++;
             }
         }
+        int test = 0;
+
+        // heightmap = new float[xSize * zSize];
+        // for (int i = 0, z = 0; z < zSize; z++)
+        // {
+        //     for (int x = 0; x < xSize; x++)
+        //     {
+        //         float y = amplitude1 * Mathf.PerlinNoise(x * frequency1,z * frequency1) + 1000;
+        //         y = (float)Math.Round(y, 0);
+        //         heightmap[i] = y;
+        //         if (x == 0 & z == 0)
+        //         {
+        //             minTerrainHeight = y;
+        //             maxTerrainHeight = y;
+        //         }
+        //         if (y > maxTerrainHeight)
+        //             maxTerrainHeight = y;
+        //         if (y < minTerrainHeight)
+        //             minTerrainHeight = y;
+        //         i++;
+        //     }
+        // }
     }
 
     void CreateUV()

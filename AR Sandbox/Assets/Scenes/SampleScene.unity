@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657826, g: 0.49641263, b: 0.57481676, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -435,15 +435,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   material: {fileID: 2100000, guid: a1388ecf5c4a5924791e5a55ead42b2a, type: 2}
   computeShader: {fileID: 7200000, guid: 8611ed1fbd8c8a94da4c6e9aa534cb2f, type: 3}
+  msm: {fileID: 1617112940}
   colors: {fileID: 0}
-  heightmap: []
+  xCut: 160
+  zCut: 100
+  heightmap: 
   xSize: 512
   zSize: 424
-  kinectheight: 2000
   maxHeight: 1000
   minHeight: 0
-  amplitude1: 1000
-  frequency1: 0.009
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0
@@ -757,7 +757,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1617112940
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -814,6 +814,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 37c9a2a8b78858f4e93bd716f736d25f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  xCut: 160
+  yCut: 100
   msm: {fileID: 1617112940}
   mDepthTexture: {fileID: 0}
 --- !u!4 &1731838946

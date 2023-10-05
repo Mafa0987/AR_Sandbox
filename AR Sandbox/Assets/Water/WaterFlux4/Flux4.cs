@@ -108,7 +108,7 @@ public class Flux4 : MonoBehaviour
         WaterCS.SetBuffer(0, "hSums", hSumsBuffer);
         WaterCS.SetBuffer(1, "hSums", hSumsBuffer);
 
-        heightMap = terrain.heightmap;
+        //heightMap = terrain.heightmap;
         for (int i = 0, z = 0; z < zSize; z++)
         {
             for (int x = 0; x < xSize; x++)
