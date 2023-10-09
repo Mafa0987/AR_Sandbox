@@ -5,13 +5,9 @@ float c;
 float xSize;
 float zSize;
 float dt;
-float vd;
-float pd;
 float a;
 
 RWStructuredBuffer<float3> vertices;
-RWStructuredBuffer<float> velocity;
-RWStructuredBuffer<float> hSums;
 RWStructuredBuffer<float4> fluxMap; // x = top, y = bottom, z = left, w = right
 RWStructuredBuffer<float> depthMap;
 RWStructuredBuffer<float> heightMap;
@@ -19,18 +15,18 @@ RWStructuredBuffer<float> heightMap;
 [numthreads(8,8,1)]
 void FindVelocity (uint3 id : SV_DispatchThreadID)
 {
-    if (id.x >= xSize+1 || id.y >= zSize+1)
+    if (id.x >= xSize || id.y >= zSize)
         return;
 
-    int vert = id.x + id.y * (xSize + 1);
+    int vert = id.x + id.y * xSize;
     float4 flux = fluxMap[vert];
     float depth = depthMap[vert];
     float current = depth + heightMap[vert] - 0.1;
 
-    float top = id.y < zSize ? (depthMap[vert + xSize + 1] + heightMap[vert + xSize + 1] - 0.1) : current;
-    float bottom = id.y > 0 ? (depthMap[vert - xSize - 1] + heightMap[vert - xSize - 1] - 0.1) : current;
+    float top = id.y < (zSize - 1) ? (depthMap[vert + xSize] + heightMap[vert + xSize] - 0.1) : current;
+    float bottom = id.y > 0 ? (depthMap[vert - xSize] + heightMap[vert - xSize] - 0.1) : current;
     float left = id.x > 0 ? (depthMap[vert - 1] + heightMap[vert - 1] - 0.1) : current;
-    float right = id.x < xSize ? (depthMap[vert + 1] + heightMap[vert + 1] - 0.1) : current;
+    float right = id.x < (xSize - 1) ? (depthMap[vert + 1] + heightMap[vert + 1] - 0.1) : current;
 
     float dtop = current - top;
     float dbottom = current - bottom;
@@ -51,8 +47,8 @@ void FindVelocity (uint3 id : SV_DispatchThreadID)
 
     if (id.x == 0) flux.z = 0;
     if (id.y == 0) flux.y = 0;
-    if (id.x == xSize) flux.w = 0;
-    if (id.y == zSize) flux.x = 0;
+    if (id.x == xSize-1) flux.w = 0;
+    if (id.y == zSize-1) flux.x = 0;
 
     fluxMap[vert] = max(0, flux);
 }
@@ -60,17 +56,17 @@ void FindVelocity (uint3 id : SV_DispatchThreadID)
 [numthreads(8,8,1)]
 void UpdateHeights (uint3 id : SV_DispatchThreadID)
 {
-    if (id.x >= xSize+1 || id.y >= zSize+1)
+    if (id.x >= xSize || id.y >= zSize)
         return;
 
-    int vert = id.x + id.y * (xSize + 1);
+    int vert = id.x + id.y * xSize;
     float4 flux = fluxMap[vert];
     float outflux = flux.x + flux.y + flux.z + flux.w;
 
-    float influxtop = id.y < zSize ? fluxMap[vert + xSize + 1].y : 0;
-    float influxbottom = id.y > 0 ? fluxMap[vert - xSize - 1].x : 0;
+    float influxtop = id.y < (zSize-1) ? fluxMap[vert + xSize].y : 0;
+    float influxbottom = id.y > 0 ? fluxMap[vert - xSize].x : 0;
     float influxleft = id.x > 0 ? fluxMap[vert - 1].w : 0;
-    float influxright = id.x < xSize ? fluxMap[vert + 1].z: 0;
+    float influxright = id.x < (xSize-1) ? fluxMap[vert + 1].z: 0;
     
     float influx = influxtop + influxbottom + influxleft + influxright;
 

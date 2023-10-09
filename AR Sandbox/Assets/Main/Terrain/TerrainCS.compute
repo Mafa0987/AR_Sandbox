@@ -1,12 +1,19 @@
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain
 #pragma kernel CSContour
+#pragma kernel ShortToInt
+#pragma kernel HMProcessing
 
-#define norm(height) ((height-0)/(1000-0))
+#define norm(height) ((height-minTerrainHeight)/(maxTerrainHeight-minTerrainHeight))
 
 RWStructuredBuffer<float3> vertices;
-StructuredBuffer<int> heightmap;
+RWStructuredBuffer<float> heightmap;
 RWTexture2D<float4> colors;
+
+//test
+RWStructuredBuffer<uint> old;
+RWStructuredBuffer<uint> ny;
+//test
 
 static float4 Blue = float4(0, 0, 1, 1);
 static float4 Green = float4(0.25, 0.5, 0.25, 1);
@@ -18,6 +25,8 @@ float minTerrainHeight;
 
 int xSize;
 int zSize;
+int originalWidth;
+int originalHeight;
 int xCut;
 int zCut;
 
@@ -42,6 +51,27 @@ void ColorSquare(uint2 idxy, int size, float4 color)
     }
 }
 
+[numthreads(64,1,1)]
+void ShortToInt (uint3 id : SV_DispatchThreadID)
+{
+    uint num = old[id.x];
+    uint first = num & 0x0000FFFF;
+    uint sec = (num & 0xFFFF0000) >> 16;
+    ny[id.x*2] = first;
+    ny[id.x*2+1] = sec;
+}
+
+[numthreads(8,8,1)]
+void HMProcessing (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= xSize || id.y >= zSize)
+        return;
+    int originalIndex = (id.x + xCut) + (id.y + zCut) * originalWidth;
+    int resizedIndex = id.x + id.y * xSize;
+    uint height = ny[originalIndex];
+    heightmap[resizedIndex] = (float)height/100.0;
+}
+
 [numthreads(8,8,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
@@ -49,11 +79,9 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         return;
 
     int vert = id.x+id.y*(xSize);
-    int vert2 = (id.x+xCut) + (id.y+zCut)*(xSize);
-    float height = 2000 - heightmap[vert2];
+    float height = heightmap[vert];
     vertices[vert] = float3(id.x, height, id.y);
 
-    //float height = (heightmap[vert]-minTerrainHeight)/(maxTerrainHeight-minTerrainHeight);
     float height_norm = norm(height);
 
     //colors[id.xy] = GetColor(height);
@@ -114,24 +142,6 @@ void DrawLine(float x1, float y1, float x2, float y2, RWTexture2D<float4> colors
         y += ystep;
     }
 }
-
-// void DrawLine(int x1, int y1, int x2, int y2, RWTexture2D<float4> colors)
-// {
-//     int dx = x2 - x1;
-//     int dy = y2 - y1;
-//     int steps = max(abs(dx), abs(dy));
-//     if (steps == 0)
-//         return;
-//     int y = 0;
-//     int x = 0;
-//     for (int i = 0; i <= steps; i++)
-//     {
-// //      colors[uint2(x1 + x, y1 + y)] = float4(0, 0, 0, 1);
-//         DrawPixel(x1 + x, y1 + y, colors);
-//         x += dx/steps;
-//         y += dy/steps;
-//     }
-// }
 
 void DrawContour(float limit, RWStructuredBuffer<float3> vertices, float maxTerrainHeight, float minTerrainHeight, RWTexture2D<float4> colors, int idx, int idy)
 {
@@ -211,18 +221,11 @@ void CSContour (uint3 id : SV_DispatchThreadID)
 {
     if (id.x > floor((xSize-1)/4-1) || id.y > floor(zSize-1)/4-1)
         return;
-    
-    // if (id.x != 0 && id.y != 0)
-    //     return;
-    
-    // DrawLine(0, 0, 2000, 1500, colors);
 
     for(int i = 0; i < 21; i++)
     {
         DrawContour((float)i/20.0, vertices, maxTerrainHeight, minTerrainHeight, colors, id.x, id.y);
     }
-
-
 }
 
 
