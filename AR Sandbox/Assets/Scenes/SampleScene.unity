@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657826, g: 0.49641263, b: 0.57481676, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -436,6 +436,7 @@ MonoBehaviour:
   material: {fileID: 2100000, guid: a1388ecf5c4a5924791e5a55ead42b2a, type: 2}
   computeShader: {fileID: 7200000, guid: 8611ed1fbd8c8a94da4c6e9aa534cb2f, type: 3}
   colors: {fileID: 0}
+  msm: {fileID: 1617112940}
   heightmap: []
   heightmap_uint: 
   heightmap_short: 
@@ -443,8 +444,8 @@ MonoBehaviour:
   zSize: 424
   originalWidth: 512
   originalHeight: 424
-  xCut: 20
-  zCut: 20
+  xCut: 30
+  zCut: 30
   amplitude1: 0
   amplitude2: 0
   amplitude3: 9
@@ -765,7 +766,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1617112940
 MonoBehaviour:
   m_ObjectHideFlags: 0
