@@ -10,6 +10,7 @@ public class TerrainGen : MonoBehaviour
     public Material material;
     public ComputeShader computeShader;
     public RenderTexture colors;
+    public MultiSourceManager msm;
     Mesh mesh;
     Vector3[] vertices;
     Vector2[] uvs;
@@ -69,6 +70,9 @@ public class TerrainGen : MonoBehaviour
 
     void CreateShapeGPU()
     {
+        //For Sandbox
+        // heightmap_short = msm.GetDepthData();
+        // oldBuffer.SetData(heightmap_short);
         //Converts Heightmap to integer
         computeShader.Dispatch(2, 512*424/2/16, 1, 1);
         nyBuffer.GetData(heightmap_uint);
@@ -169,6 +173,9 @@ public class TerrainGen : MonoBehaviour
         }
         maxTerrainHeight /= 100;
         minTerrainHeight /= 100;
+        //Sandbox
+        // maxTerrainHeight = 420;
+        // minTerrainHeight = 350;
     }
 
     void CreateUV()
