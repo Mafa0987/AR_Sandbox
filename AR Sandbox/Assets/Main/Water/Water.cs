@@ -42,7 +42,7 @@ public class Water : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKey(KeyCode.Space))
         {
             AddBump();
         }
@@ -145,9 +145,9 @@ public class Water : MonoBehaviour
             for (int x = 0; x < xSize; x++)
             {
                 float circle = (x - 250) * (x - 250) + (z - 250) * (z - 250);
-                if (circle < 10000)
+                if (circle < 5000)
                 {
-                    depthMap[x + z * xSize] += 20f;
+                    depthMap[x + z * xSize] += 0.5f;
                 }
             }
         }
