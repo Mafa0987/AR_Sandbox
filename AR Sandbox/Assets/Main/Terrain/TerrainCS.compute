@@ -69,7 +69,7 @@ void HMProcessing (uint3 id : SV_DispatchThreadID)
     int originalIndex = (id.x + xCut) + (id.y + zCut) * originalWidth;
     int resizedIndex = id.x + id.y * xSize;
     uint height = ny[originalIndex];
-    heightmap[resizedIndex] = (float)height/100.0;
+    heightmap[resizedIndex] =  (2000.0 - (float)height)/25.0;
 }
 
 [numthreads(8,8,1)]

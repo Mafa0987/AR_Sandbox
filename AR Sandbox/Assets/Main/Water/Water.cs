@@ -40,7 +40,7 @@ public class Water : MonoBehaviour
     }
 
     // Update is called once per frame
-    void FixedUpdate()
+    void Update()
     {
         if (Input.GetKey(KeyCode.Space))
         {
@@ -52,6 +52,9 @@ public class Water : MonoBehaviour
 
     void UpdateHeights()
     {
+        heightMap = terrain.heightmap;
+        heightMapBuffer.SetData(heightMap);
+        
         dt = Time.fixedDeltaTime;
 
         WaterCS.SetFloat("dt", dt);

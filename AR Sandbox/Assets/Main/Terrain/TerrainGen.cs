@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using Random=UnityEngine.Random;
 
 [RequireComponent(typeof(MeshFilter))]
 public class TerrainGen : MonoBehaviour
@@ -70,6 +71,8 @@ public class TerrainGen : MonoBehaviour
 
     void CreateShapeGPU()
     {
+        CreateHeightmap();
+        oldBuffer.SetData(heightmap_short);
         //For Sandbox
         // heightmap_short = msm.GetDepthData();
         // oldBuffer.SetData(heightmap_short);
@@ -86,6 +89,7 @@ public class TerrainGen : MonoBehaviour
         computeShader.Dispatch(0, 512/8, 424/8, 1);
         verticesBuffer.GetData(vertices);
         computeShader.Dispatch(1, 128/8, 105/7, 1);
+        verticesBuffer.GetData(vertices);
     }
     void UpdateMesh()
     {
@@ -151,6 +155,7 @@ public class TerrainGen : MonoBehaviour
 
     void CreateHeightmap()
     {
+        amplitude2 = Random.Range(0f, 1f);
         heightmap_short = new ushort[originalWidth * originalHeight];
         heightmap_uint = new uint[originalWidth * originalHeight];
         heightmap = new float[xSize * zSize];
@@ -162,7 +167,7 @@ public class TerrainGen : MonoBehaviour
                     (ushort)((amplitude1 * Mathf.PerlinNoise(x * frequency1,z * frequency1)
                     + amplitude2 * Mathf.PerlinNoise(x * frequency2, z * frequency2)
                     + amplitude3 * Mathf.PerlinNoise(x * frequency3, z * frequency3)
-                        * noiseStrength)*100);
+                        * noiseStrength)*300);
                 heightmap_short[i] = y;
                 if (y > maxTerrainHeight)
                     maxTerrainHeight = y;
@@ -171,8 +176,8 @@ public class TerrainGen : MonoBehaviour
                 i++;
             }
         }
-        maxTerrainHeight /= 100;
-        minTerrainHeight /= 100;
+        minTerrainHeight = (2000-maxTerrainHeight)/25;
+        maxTerrainHeight = (2000-minTerrainHeight)/25;
         //Sandbox
         // maxTerrainHeight = 420;
         // minTerrainHeight = 350;
