@@ -434,6 +434,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   material: {fileID: 2100000, guid: a1388ecf5c4a5924791e5a55ead42b2a, type: 2}
+  terrainpos: {fileID: 847163001}
+  waterpos: {fileID: 1244409261}
   computeShader: {fileID: 7200000, guid: 8611ed1fbd8c8a94da4c6e9aa534cb2f, type: 3}
   colors: {fileID: 0}
   msm: {fileID: 1617112940}
