@@ -13,6 +13,9 @@ RWTexture2D<float4> colors;
 //test
 RWStructuredBuffer<uint> old;
 RWStructuredBuffer<uint> ny;
+RWStructuredBuffer<uint> average;
+int N;
+int num_arrays;
 //test
 
 static float4 Blue = float4(0, 0, 1, 1);
@@ -59,6 +62,22 @@ void ShortToInt (uint3 id : SV_DispatchThreadID)
     uint sec = (num & 0xFFFF0000) >> 16;
     ny[id.x*2] = first;
     ny[id.x*2+1] = sec;
+    
+    //Noise reduction
+    int i_step = id.x * 2;
+    for (int j = num_arrays - 1; j >= 0; j--)
+    {
+        if (j == 0)
+        {
+            average[i_step] = first;
+            average[i_step + 1] = sec;
+        }
+        else
+        {
+            average[i_step + N * j] = average[i_step + N * (j - 1)];
+            average[i_step + N * j + 1] = average[i_step + N * (j - 1) + 1];
+        }
+    }
 }
 
 [numthreads(8,8,1)]
@@ -68,8 +87,18 @@ void HMProcessing (uint3 id : SV_DispatchThreadID)
         return;
     int originalIndex = (id.x + xCut) + (id.y + zCut) * originalWidth;
     int resizedIndex = id.x + id.y * xSize;
-    uint height = ny[originalIndex];
-    heightmap[resizedIndex] =  (2000.0 - (float)height)/25.0;
+
+    //average noise reduction
+    uint sum = 0;
+    for (int i = 0; i < num_arrays; i++)
+    {
+        sum += average[originalIndex + i * N];
+    }
+    uint height = sum / num_arrays;
+    //test
+
+    //uint height = ny[originalIndex];
+    heightmap[resizedIndex] = (2000.0 - (float)height)/25.0;
 }
 
 [numthreads(8,8,1)]
