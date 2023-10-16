@@ -40,13 +40,22 @@ public class Water : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
         if (Input.GetKey(KeyCode.Space))
         {
             AddBump();
         }
         UpdateHeights();
+        UpdateMesh();
+    }
+
+    void Update()
+    {
+        heightMap = terrain.heightmap;
+        heightMapBuffer.SetData(heightMap);
+        WaterCS.Dispatch(2, 512/8, 424/8, 1);
+        verticesBuffer.GetData(vertices);
         UpdateMesh();
     }
 
@@ -94,6 +103,12 @@ public class Water : MonoBehaviour
         WaterCS.SetBuffer(1, "heightMap", heightMapBuffer);
         WaterCS.SetBuffer(0, "depthMap", depthMapBuffer);
         WaterCS.SetBuffer(1, "depthMap", depthMapBuffer);
+
+        //test
+        WaterCS.SetBuffer(2, "vertices", verticesBuffer);
+        WaterCS.SetBuffer(2, "heightMap", heightMapBuffer);
+        WaterCS.SetBuffer(2, "depthMap", depthMapBuffer);
+        //
 
         heightMap = terrain.heightmap;
         for (int i = 0, z = 0; z < zSize; z++)

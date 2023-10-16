@@ -1,5 +1,6 @@
 #pragma kernel FindVelocity
 #pragma kernel UpdateHeights
+#pragma kernel UpdatePlane
 
 float c;
 float xSize;
@@ -73,5 +74,15 @@ void UpdateHeights (uint3 id : SV_DispatchThreadID)
     float deltavolume = influx - outflux;
 
     depthMap[vert] += dt * deltavolume / a;
+    vertices[vert].y = depthMap[vert] + heightMap[vert] - 0.1;
+}
+
+[numthreads(8,8,1)]
+void UpdatePlane (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= xSize || id.y >= zSize)
+        return;
+
+    int vert = id.x + id.y * xSize;
     vertices[vert].y = depthMap[vert] + heightMap[vert] - 0.1;
 }
