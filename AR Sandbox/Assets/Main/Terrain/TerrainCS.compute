@@ -22,6 +22,7 @@ static float4 Blue = float4(0, 0, 1, 1);
 static float4 Green = float4(0.25, 0.5, 0.25, 1);
 static float4 Beige = float4(1, 0.25, 0, 1);
 static float4 Red = float4(0.5, 0, 0, 1);
+static float4 White = float4(1, 1, 1, 1);
 
 float maxTerrainHeight;
 float minTerrainHeight;
@@ -35,14 +36,16 @@ int zCut;
 
 float4 GetColor(float height)
 {
-    if (height <= 0.4)
-        return lerp(Blue, Green, height/0.4);
-    else if (height <= 0.7)
-        return lerp(Green, Beige, (height-0.4)/0.3);
+    if (height <= 0.25)
+        return lerp(Blue, Green, height/0.25);
+    else if (height <= 0.5)
+        return lerp(Green, Beige, (height-0.25)/0.25);
+    else if (height <= 0.75)
+        return lerp(Beige, Red, (height-0.5)/0.25);
     else if (height <= 1.0)
-        return lerp(Beige, Red, (height-0.7)/0.3);
+        return lerp(Red, White, (height-0.75)/0.25);
     else
-        return Red;
+        return White;
 }
 
 void ColorSquare(uint2 idxy, int size, float4 color)
