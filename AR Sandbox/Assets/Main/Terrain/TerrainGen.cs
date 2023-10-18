@@ -24,7 +24,7 @@ public class TerrainGen : MonoBehaviour
     //test average noise reduction
     ComputeBuffer averageBuffer;
     int N = 512 * 424;
-    int num_arrays = 60;
+    int num_arrays = 30;
     //test
 
     public float[] heightmap;
@@ -79,11 +79,11 @@ public class TerrainGen : MonoBehaviour
 
     void CreateShapeGPU()
     {
-        CreateHeightmap();
-        oldBuffer.SetData(heightmap_short);
-        //For Sandbox
-        // heightmap_short = msm.GetDepthData();
+        // CreateHeightmap();
         // oldBuffer.SetData(heightmap_short);
+        //For Sandbox
+        heightmap_short = msm.GetDepthData();
+        oldBuffer.SetData(heightmap_short);
         //Converts Heightmap to integer
         computeShader.Dispatch(2, 512*424/2/64, 1, 1);
         nyBuffer.GetData(heightmap_uint);
@@ -93,7 +93,7 @@ public class TerrainGen : MonoBehaviour
         heightBuffer.GetData(heightmap);
         //Rest of the calculations
         maxTerrainHeight = 60;
-        minTerrainHeight = 0;
+        minTerrainHeight = 45;
         computeShader.SetFloat("maxTerrainHeight", maxTerrainHeight);
         computeShader.SetFloat("minTerrainHeight", minTerrainHeight);
 
@@ -181,28 +181,28 @@ public class TerrainGen : MonoBehaviour
         heightmap_short = new ushort[originalWidth * originalHeight];
         heightmap_uint = new uint[originalWidth * originalHeight];
         heightmap = new float[xSize * zSize];
-        for (int i = 0, z = 0; z < originalHeight; z++)
-        {
-            for (int x = 0; x < originalWidth; x++)
-            {
-                ushort y =
-                    (ushort)((amplitude1 * Mathf.PerlinNoise(x * frequency1,z * frequency1)
-                    + amplitude2 * Mathf.PerlinNoise(x * frequency2, z * frequency2)
-                    + amplitude3 * Mathf.PerlinNoise(x * frequency3, z * frequency3)
-                        * noiseStrength)*300);
-                heightmap_short[i] = y;
-                if (y > maxTerrainHeight)
-                    maxTerrainHeight = y;
-                if (y < minTerrainHeight)
-                    minTerrainHeight = y;
-                i++;
-            }
-        }
-        minTerrainHeight = 0;
-        maxTerrainHeight = 60;
+        // for (int i = 0, z = 0; z < originalHeight; z++)
+        // {
+        //     for (int x = 0; x < originalWidth; x++)
+        //     {
+        //         ushort y =
+        //             (ushort)((amplitude1 * Mathf.PerlinNoise(x * frequency1,z * frequency1)
+        //             + amplitude2 * Mathf.PerlinNoise(x * frequency2, z * frequency2)
+        //             + amplitude3 * Mathf.PerlinNoise(x * frequency3, z * frequency3)
+        //                 * noiseStrength)*300);
+        //         heightmap_short[i] = y;
+        //         if (y > maxTerrainHeight)
+        //             maxTerrainHeight = y;
+        //         if (y < minTerrainHeight)
+        //             minTerrainHeight = y;
+        //         i++;
+        //     }
+        // }
+        // minTerrainHeight = 0;
+        // maxTerrainHeight = 60;
         //Sandbox
-        // maxTerrainHeight = 420;
-        // minTerrainHeight = 350;
+        maxTerrainHeight = 20;
+        minTerrainHeight = 30;
     }
 
     void CreateUV()

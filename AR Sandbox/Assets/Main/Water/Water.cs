@@ -162,8 +162,8 @@ public class Water : MonoBehaviour
         {
             for (int x = 0; x < xSize; x++)
             {
-                float circle = (x - 250) * (x - 250) + (z - 250) * (z - 250);
-                if (circle < 5000)
+                float circle = (x - 50) * (x - 50) + (z - 50) * (z - 50);
+                if (circle < 50)
                 {
                     depthMap[x + z * xSize] += 0.5f;
                 }
