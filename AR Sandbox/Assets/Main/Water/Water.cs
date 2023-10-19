@@ -12,6 +12,10 @@ public class Water : MonoBehaviour
     float[] heightMap;
     float[] depthMap;
     Vector4[] fluxMap;
+    RenderTexture colors;
+    Vector2[] uvs;
+
+    public Material waterMaterial;
 
     public TerrainGen terrain;
 
@@ -56,6 +60,7 @@ public class Water : MonoBehaviour
         heightMapBuffer.SetData(heightMap);
         WaterCS.Dispatch(2, 512/8, 424/8, 1);
         verticesBuffer.GetData(vertices);
+        WaterCS.Dispatch(3, 512/8, 424/8, 1);
         UpdateMesh();
     }
 
@@ -81,6 +86,7 @@ public class Water : MonoBehaviour
     {
         mesh.vertices = vertices;
         mesh.RecalculateNormals();
+        waterMaterial.mainTexture = colors;
     }
 
     void InitMesh()
@@ -89,6 +95,9 @@ public class Water : MonoBehaviour
         fluxMap = new Vector4[xSize * zSize];
         depthMap = new float[xSize * zSize];
         heightMap = new float[xSize * zSize];
+        colors = new RenderTexture(xSize, zSize, 24);
+        colors.enableRandomWrite = true;
+        colors.Create();
 
         verticesBuffer = new ComputeBuffer(vertices.Length, sizeof(float) * 3);
         fluxMapBuffer = new ComputeBuffer(vertices.Length, sizeof(float) * 4);
@@ -103,6 +112,8 @@ public class Water : MonoBehaviour
         WaterCS.SetBuffer(1, "heightMap", heightMapBuffer);
         WaterCS.SetBuffer(0, "depthMap", depthMapBuffer);
         WaterCS.SetBuffer(1, "depthMap", depthMapBuffer);
+        WaterCS.SetBuffer(3, "depthMap", depthMapBuffer);
+        WaterCS.SetTexture(3, "colors", colors);
 
         //test
         WaterCS.SetBuffer(2, "vertices", verticesBuffer);
@@ -124,8 +135,10 @@ public class Water : MonoBehaviour
         }
 
         CreateTriangles();
+        CreateUV();
         mesh.vertices = vertices;
         mesh.triangles = triangles;
+        mesh.uv = uvs;
         verticesBuffer.SetData(vertices);
         fluxMapBuffer.SetData(fluxMap);
         heightMapBuffer.SetData(heightMap);
@@ -162,14 +175,27 @@ public class Water : MonoBehaviour
         {
             for (int x = 0; x < xSize; x++)
             {
-                float circle = (x - 50) * (x - 50) + (z - 50) * (z - 50);
-                if (circle < 50)
+                float circle = (x - 250) * (x - 250) + (z - 250) * (z - 250);
+                if (circle < 5000)
                 {
                     depthMap[x + z * xSize] += 0.5f;
                 }
             }
         }
         depthMapBuffer.SetData(depthMap);
+    }
+
+    void CreateUV()
+    {
+        uvs = new Vector2[xSize * zSize];
+        for (int i = 0, z = 0; z < zSize; z++)
+        {
+            for (int x = 0; x < xSize; x++)
+            {
+                uvs[i] = new Vector2((float)x / (xSize-1), (float)z / (zSize-1));
+                i++;
+            }
+        }
     }
 
     void OnDestroy()
