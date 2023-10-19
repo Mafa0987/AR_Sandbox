@@ -92,8 +92,8 @@ public class TerrainGen : MonoBehaviour
         computeShader.Dispatch(3, 512/8, 424/8, 1);
         heightBuffer.GetData(heightmap);
         //Rest of the calculations
-        maxTerrainHeight = 60;
-        minTerrainHeight = 45;
+        maxTerrainHeight = 80;
+        minTerrainHeight = 60;
         computeShader.SetFloat("maxTerrainHeight", maxTerrainHeight);
         computeShader.SetFloat("minTerrainHeight", minTerrainHeight);
 

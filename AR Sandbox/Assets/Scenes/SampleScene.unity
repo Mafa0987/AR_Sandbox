@@ -446,8 +446,8 @@ MonoBehaviour:
   zSize: 424
   originalWidth: 512
   originalHeight: 424
-  xCut: 160
-  zCut: 100
+  xCut: 0
+  zCut: 0
   amplitude1: 0
   amplitude2: 0
   amplitude3: 9
