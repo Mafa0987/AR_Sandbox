@@ -47,8 +47,8 @@ public class TerrainGen : MonoBehaviour
     public float frequency3 = 1f;
     public float noiseStrength = 1f;
 
-    float minTerrainHeight;
-    float maxTerrainHeight;
+    public float minTerrainHeight = 0f;
+    public float maxTerrainHeight = 10f;
 
     //test
     ushort[] old;
@@ -92,8 +92,6 @@ public class TerrainGen : MonoBehaviour
         computeShader.Dispatch(3, 512/8, 424/8, 1);
         heightBuffer.GetData(heightmap);
         //Rest of the calculations
-        maxTerrainHeight = 60;
-        minTerrainHeight = -20;
         computeShader.SetFloat("maxTerrainHeight", maxTerrainHeight);
         computeShader.SetFloat("minTerrainHeight", minTerrainHeight);
 
@@ -191,18 +189,9 @@ public class TerrainGen : MonoBehaviour
                     + amplitude3 * Mathf.PerlinNoise(x * frequency3, z * frequency3)
                         * noiseStrength)*300);
                 heightmap_short[i] = y;
-                if (y > maxTerrainHeight)
-                    maxTerrainHeight = y;
-                if (y < minTerrainHeight)
-                    minTerrainHeight = y;
                 i++;
             }
         }
-        minTerrainHeight = 0;
-        maxTerrainHeight = 60;
-        //Sandbox
-        // maxTerrainHeight = 20;
-        // minTerrainHeight = 30;
     }
 
     void CreateUV()
@@ -297,6 +286,23 @@ public class TerrainGen : MonoBehaviour
         {
             terrainpos.transform.position += new Vector3(-speed, 0, 0);
             waterpos.transform.position += new Vector3(-speed, 0, 0);
+        }
+
+        if (Input.GetKey(KeyCode.O))
+        {
+            maxTerrainHeight += 10f;
+        }
+        else if (Input.GetKey(KeyCode.L))
+        {
+            maxTerrainHeight -= 10f;
+        }
+        if (Input.GetKey(KeyCode.I))
+        {
+            minTerrainHeight += 10f;
+        }
+        else if (Input.GetKey(KeyCode.K))
+        {
+            minTerrainHeight -= 10f;
         }
     }
 

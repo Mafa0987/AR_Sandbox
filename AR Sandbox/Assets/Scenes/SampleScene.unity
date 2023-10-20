@@ -448,13 +448,15 @@ MonoBehaviour:
   originalHeight: 424
   xCut: 0
   zCut: 0
-  amplitude1: 0
-  amplitude2: 0
-  amplitude3: 9
-  frequency1: 0
+  amplitude1: 1
+  amplitude2: 1
+  amplitude3: 1
+  frequency1: 1
   frequency2: 1
   frequency3: 0.009
-  noiseStrength: 1
+  noiseStrength: 9
+  minTerrainHeight: 0
+  maxTerrainHeight: 10
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0
