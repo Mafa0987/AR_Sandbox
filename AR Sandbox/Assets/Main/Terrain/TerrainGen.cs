@@ -243,6 +243,8 @@ public class TerrainGen : MonoBehaviour
     {
         float speed = 20f * Time.deltaTime;
         float scaleSpeed = 0.1f * Time.deltaTime;
+        float rotateSpeed = 5f * Time.deltaTime;
+
         if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.UpArrow))
         {
             terrainpos.transform.localScale += new Vector3(0, 0, scaleSpeed);
@@ -253,6 +255,7 @@ public class TerrainGen : MonoBehaviour
             terrainpos.transform.position += new Vector3(0, 0, speed);
             waterpos.transform.position += new Vector3(0, 0, speed);
         }
+
         if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.DownArrow))
         {
             terrainpos.transform.localScale += new Vector3(0, 0, -scaleSpeed);
@@ -263,20 +266,32 @@ public class TerrainGen : MonoBehaviour
             terrainpos.transform.position += new Vector3(0, 0, -speed);
             waterpos.transform.position += new Vector3(0, 0, -speed);
         }
+
         if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.RightArrow))
         {
             terrainpos.transform.localScale += new Vector3(scaleSpeed, 0, 0);
             waterpos.transform.localScale += new Vector3(scaleSpeed, 0, 0);
+        }
+        else if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.RightArrow))
+        {
+            terrainpos.transform.rotation *= Quaternion.Euler(0, rotateSpeed, 0);
+            waterpos.transform.rotation *= Quaternion.Euler(0, rotateSpeed, 0);
         }
         else if (Input.GetKey(KeyCode.RightArrow))
         {
             terrainpos.transform.position += new Vector3(speed, 0, 0);
             waterpos.transform.position += new Vector3(speed, 0, 0);
         }
+
         if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.LeftArrow))
         {
             terrainpos.transform.localScale += new Vector3(-scaleSpeed, 0, 0);
             waterpos.transform.localScale += new Vector3(-scaleSpeed, 0, 0);
+        }
+        else if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.LeftArrow))
+        {
+            terrainpos.transform.rotation *= Quaternion.Euler(0, -rotateSpeed, 0);
+            waterpos.transform.rotation *= Quaternion.Euler(0, -rotateSpeed, 0);
         }
         else if (Input.GetKey(KeyCode.LeftArrow))
         {
