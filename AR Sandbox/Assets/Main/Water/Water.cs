@@ -60,7 +60,6 @@ public class Water : MonoBehaviour
         heightMapBuffer.SetData(heightMap);
         WaterCS.Dispatch(2, 512/8, 424/8, 1);
         verticesBuffer.GetData(vertices);
-        WaterCS.Dispatch(3, 512/8, 424/8, 1);
         UpdateMesh();
     }
 
@@ -80,6 +79,7 @@ public class Water : MonoBehaviour
         WaterCS.Dispatch(0, 512/8, 424/8, 1);
         WaterCS.Dispatch(1, 512/8, 424/8, 1);
         verticesBuffer.GetData(vertices);
+        WaterCS.Dispatch(3, 512/8, 424/8, 1);
     }
 
     void UpdateMesh()

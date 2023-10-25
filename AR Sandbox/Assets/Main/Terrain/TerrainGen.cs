@@ -79,8 +79,8 @@ public class TerrainGen : MonoBehaviour
 
     void CreateShapeGPU()
     {
-        CreateHeightmap();
-        oldBuffer.SetData(heightmap_short);
+        // CreateHeightmap();
+        // oldBuffer.SetData(heightmap_short);
         //For Sandbox
         // heightmap_short = msm.GetDepthData();
         // oldBuffer.SetData(heightmap_short);
@@ -105,7 +105,7 @@ public class TerrainGen : MonoBehaviour
         Calibrate();
         mesh.vertices = vertices;
         material.mainTexture = colors;
-        mesh.RecalculateNormals();
+        //mesh.RecalculateNormals();
     }
 
     void InitShader()
