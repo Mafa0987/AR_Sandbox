@@ -72,8 +72,8 @@ void ShortToInt (uint3 id : SV_DispatchThreadID)
     {
         if (j == 0)
         {
-            average[i_step] = first;
-            average[i_step + 1] = sec;
+            average[i_step] = (2000.0 - (float)first)/4.0 < maxTerrainHeight ? first : average[i_step];     
+            average[i_step + 1] = (2000.0 - (float)sec)/4.0 < maxTerrainHeight ? sec : average[i_step];
         }
         else
         {
@@ -101,7 +101,7 @@ void HMProcessing (uint3 id : SV_DispatchThreadID)
     //test
 
     //uint height = ny[originalIndex];
-    heightmap[resizedIndex] = (2000.0 - (float)height)/25.0;
+    heightmap[resizedIndex] = (2000.0 - (float)height)/4.0;
 }
 
 [numthreads(8,8,1)]
