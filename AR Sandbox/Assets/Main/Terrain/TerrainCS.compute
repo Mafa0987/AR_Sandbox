@@ -73,7 +73,7 @@ void ShortToInt (uint3 id : SV_DispatchThreadID)
         if (j == 0)
         {
             average[i_step] = (2000.0 - (float)first)/4.0 < maxTerrainHeight ? first : average[i_step];     
-            average[i_step + 1] = (2000.0 - (float)sec)/4.0 < maxTerrainHeight ? sec : average[i_step];
+            average[i_step + 1] = (2000.0 - (float)sec)/4.0 < maxTerrainHeight ? sec : average[i_step + 1];
         }
         else
         {
