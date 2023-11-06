@@ -9,6 +9,8 @@ float zSize;
 float dt;
 float a;
 
+bool clearWater;
+
 RWStructuredBuffer<float3> vertices;
 RWStructuredBuffer<float4> fluxMap; // x = top, y = bottom, z = left, w = right
 RWStructuredBuffer<float> depthMap;
@@ -77,6 +79,11 @@ void UpdateHeights (uint3 id : SV_DispatchThreadID)
 
     depthMap[vert] += dt * deltavolume / a;
     vertices[vert].y = depthMap[vert] + heightMap[vert] - 0.1;
+
+    if (clearWater)
+    {
+        depthMap[vert] = 0;
+    }
 }
 
 [numthreads(8,8,1)]

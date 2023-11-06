@@ -15,6 +15,8 @@ public class Water : MonoBehaviour
     RenderTexture colors;
     Vector2[] uvs;
 
+    bool clearWater = false;
+
     public Material waterMaterial;
 
     public TerrainGen terrain;
@@ -52,10 +54,20 @@ public class Water : MonoBehaviour
         }
         UpdateHeights();
         UpdateMesh();
+        if (clearWater)
+        {
+            clearWater = false;
+            WaterCS.SetBool("clearWater", clearWater);
+        }
     }
 
     void Update()
     {
+        if (Input.GetKey(KeyCode.C))
+        {
+            clearWater = true;
+            WaterCS.SetBool("clearWater", clearWater);
+        }
         heightMap = terrain.heightmap;
         heightMapBuffer.SetData(heightMap);
         WaterCS.Dispatch(2, 512/8, 424/8, 1);

@@ -82,7 +82,7 @@ public class TerrainGen : MonoBehaviour
         // CreateHeightmap();
         // oldBuffer.SetData(heightmap_short);
         //For Sandbox
-        heightmap_short = msm.GetDepthData();
+        //heightmap_short = msm.GetDepthData();
         oldBuffer.SetData(heightmap_short);
         //Converts Heightmap to integer
         computeShader.Dispatch(2, 512*424/2/64, 1, 1);
@@ -179,19 +179,19 @@ public class TerrainGen : MonoBehaviour
         heightmap_short = new ushort[originalWidth * originalHeight];
         heightmap_uint = new uint[originalWidth * originalHeight];
         heightmap = new float[xSize * zSize];
-        // for (int i = 0, z = 0; z < originalHeight; z++)
-        // {
-        //     for (int x = 0; x < originalWidth; x++)
-        //     {
-        //         ushort y =
-        //             (ushort)((amplitude1 * Mathf.PerlinNoise(x * frequency1,z * frequency1)
-        //             + amplitude2 * Mathf.PerlinNoise(x * frequency2, z * frequency2)
-        //             + amplitude3 * Mathf.PerlinNoise(x * frequency3, z * frequency3)
-        //                 * noiseStrength)*300);
-        //         heightmap_short[i] = y;
-        //         i++;
-        //     }
-        // }
+        for (int i = 0, z = 0; z < originalHeight; z++)
+        {
+            for (int x = 0; x < originalWidth; x++)
+            {
+                ushort y =
+                    (ushort)((amplitude1 * Mathf.PerlinNoise(x * frequency1,z * frequency1)
+                    + amplitude2 * Mathf.PerlinNoise(x * frequency2, z * frequency2)
+                    + amplitude3 * Mathf.PerlinNoise(x * frequency3, z * frequency3)
+                        * noiseStrength)*300*4/25);
+                heightmap_short[i] = y;
+                i++;
+            }
+        }
     }
 
     void CreateUV()
@@ -230,9 +230,10 @@ public class TerrainGen : MonoBehaviour
 
     void Calibrate()
     {
-        float speed = 20f * Time.deltaTime;
-        float scaleSpeed = 0.1f * Time.deltaTime;
-        float rotateSpeed = 5f * Time.deltaTime;
+        float dt = Time.deltaTime;
+        float speed = 20f * dt;
+        float scaleSpeed = 0.1f * dt;
+        float rotateSpeed = 5f * dt;
 
         if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.UpArrow))
         {
@@ -290,19 +291,19 @@ public class TerrainGen : MonoBehaviour
 
         if (Input.GetKey(KeyCode.O))
         {
-            maxTerrainHeight += 10f;
+            maxTerrainHeight += 100f * dt;
         }
         else if (Input.GetKey(KeyCode.L))
         {
-            maxTerrainHeight -= 10f;
+            maxTerrainHeight -= 100f * dt;
         }
         if (Input.GetKey(KeyCode.I))
         {
-            minTerrainHeight += 10f;
+            minTerrainHeight += 100f * dt;
         }
         else if (Input.GetKey(KeyCode.K))
         {
-            minTerrainHeight -= 10f;
+            minTerrainHeight -= 100f * dt;
         }
     }
 
