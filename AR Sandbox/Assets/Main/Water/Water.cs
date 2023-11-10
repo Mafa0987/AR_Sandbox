@@ -125,8 +125,8 @@ public class Water : MonoBehaviour
         WaterCS.SetBuffer(1, "vertices", verticesBuffer);
         WaterCS.SetBuffer(0, "fluxMap", fluxMapBuffer);
         WaterCS.SetBuffer(1, "fluxMap", fluxMapBuffer);
-        WaterCS.SetBuffer(0, "heightMap", heightmapBuffer);
-        WaterCS.SetBuffer(1, "heightMap", heightmapBuffer);
+        WaterCS.SetBuffer(0, "heightmap", heightmapBuffer);
+        WaterCS.SetBuffer(1, "heightmap", heightmapBuffer);
         WaterCS.SetBuffer(0, "depthMap", depthMapBuffer);
         WaterCS.SetBuffer(1, "depthMap", depthMapBuffer);
         WaterCS.SetBuffer(3, "depthMap", depthMapBuffer);
@@ -136,6 +136,7 @@ public class Water : MonoBehaviour
         WaterCS.SetBuffer(2, "vertices", verticesBuffer);
         WaterCS.SetBuffer(2, "heightmap", heightmapBuffer);
         WaterCS.SetBuffer(4, "heightmapRaw", heightmapRawBuffer);
+        WaterCS.SetBuffer(4, "depthMap", depthMapBuffer);
         WaterCS.SetBuffer(2, "depthMap", depthMapBuffer);
         //
 
