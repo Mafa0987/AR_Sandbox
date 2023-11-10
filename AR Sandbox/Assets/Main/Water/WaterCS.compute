@@ -17,8 +17,8 @@ bool clearWater;
 RWStructuredBuffer<float3> vertices;
 RWStructuredBuffer<float4> fluxMap; // x = top, y = bottom, z = left, w = right
 RWStructuredBuffer<float> depthMap;
-RWStructuredBuffer<float> heightMap;
-RWStructuredBuffer<float> heightMap_Raw;
+RWStructuredBuffer<float> heightmap;
+RWStructuredBuffer<float> heightmapRaw;
 RWTexture2D<float4> colors;
 
 
@@ -29,7 +29,7 @@ void AddWater (uint3 id : SV_DispatchThreadID)
         return;
 
     int vert = id.x + id.y * xSize;
-    if (heightMap_Raw[vert] > rainHeight)
+    if (heightmapRaw[vert] > rainHeight)
     {
         depthMap[vert] += 1 * dt;
     }
@@ -44,12 +44,12 @@ void FindVelocity (uint3 id : SV_DispatchThreadID)
     int vert = id.x + id.y * xSize;
     float4 flux = fluxMap[vert];
     float depth = depthMap[vert];
-    float current = depth + heightMap[vert] - 0.1;
+    float current = depth + heightmap[vert] - 0.1;
 
-    float top = id.y < (zSize - 1) ? (depthMap[vert + xSize] + heightMap[vert + xSize] - 0.1) : current;
-    float bottom = id.y > 0 ? (depthMap[vert - xSize] + heightMap[vert - xSize] - 0.1) : current;
-    float left = id.x > 0 ? (depthMap[vert - 1] + heightMap[vert - 1] - 0.1) : current;
-    float right = id.x < (xSize - 1) ? (depthMap[vert + 1] + heightMap[vert + 1] - 0.1) : current;
+    float top = id.y < (zSize - 1) ? (depthMap[vert + xSize] + heightmap[vert + xSize] - 0.1) : current;
+    float bottom = id.y > 0 ? (depthMap[vert - xSize] + heightmap[vert - xSize] - 0.1) : current;
+    float left = id.x > 0 ? (depthMap[vert - 1] + heightmap[vert - 1] - 0.1) : current;
+    float right = id.x < (xSize - 1) ? (depthMap[vert + 1] + heightmap[vert + 1] - 0.1) : current;
 
     float dtop = current - top;
     float dbottom = current - bottom;
@@ -96,7 +96,7 @@ void UpdateHeights (uint3 id : SV_DispatchThreadID)
     float deltavolume = influx - outflux;
 
     depthMap[vert] += dt * deltavolume / a;
-    vertices[vert].y = depthMap[vert] + heightMap[vert] - 0.1;
+    vertices[vert].y = depthMap[vert] + heightmap[vert] - 0.1;
 
     if (clearWater)
     {
@@ -111,7 +111,7 @@ void UpdatePlane (uint3 id : SV_DispatchThreadID)
         return;
 
     int vert = id.x + id.y * xSize;
-    vertices[vert].y = depthMap[vert] + heightMap[vert] - 0.1;
+    vertices[vert].y = depthMap[vert] + heightmap[vert] - 0.1;
 }
 
 [numthreads(8,8,1)]

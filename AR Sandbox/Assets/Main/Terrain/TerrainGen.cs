@@ -28,7 +28,7 @@ public class TerrainGen : MonoBehaviour
     //test
 
     public float[] heightmap;
-    public float[] heightmap_raw;
+    public float[] heightmapRaw;
     public ushort[] heightmap_short;
 
 
@@ -89,11 +89,11 @@ public class TerrainGen : MonoBehaviour
         oldBuffer.SetData(heightmap_short);
         //Converts Heightmap to integer
         computeShader.Dispatch(2, 512*424/2/64, 1, 1);
-        nyBuffer.GetData(heightmap_raw);
         //Noise reduction
         //Cuts heightmap and converts to float
         computeShader.Dispatch(3, 512/8, 424/8, 1);
         heightBuffer.GetData(heightmap);
+        heightmapRawBuffer.GetData(heightmapRaw);
         //Rest of the calculations
         computeShader.SetFloat("maxTerrainHeight", maxTerrainHeight);
         computeShader.SetFloat("minTerrainHeight", minTerrainHeight);
@@ -116,7 +116,7 @@ public class TerrainGen : MonoBehaviour
         vertices = new Vector3[xSize * zSize];
         verticesBuffer = new ComputeBuffer(vertices.Length, sizeof(float) * 3);
         heightBuffer = new ComputeBuffer(heightmap.Length, sizeof(float));
-        heightmapRawBuffer = new ComputeBuffer(heightmap_raw.Length, sizeof(float));
+        heightmapRawBuffer = new ComputeBuffer(heightmapRaw.Length, sizeof(float));
         averageBuffer = new ComputeBuffer(N*num_arrays, sizeof(uint));
         colors = new RenderTexture(xSize*4, zSize*4, 24);
         colors.enableRandomWrite = true;
@@ -151,7 +151,7 @@ public class TerrainGen : MonoBehaviour
         computeShader.SetBuffer(2, "old", oldBuffer);
         computeShader.SetBuffer(2, "ny", nyBuffer);
         computeShader.SetBuffer(3, "ny", nyBuffer);
-        computeShader.SetBuffer(3, "heightmap_Raw", heightmapRawBuffer);
+        computeShader.SetBuffer(3, "heightmapRaw", heightmapRawBuffer);
         //test
     }
 
@@ -182,7 +182,7 @@ public class TerrainGen : MonoBehaviour
     {
         amplitude2 = Random.Range(0f, 1f);
         heightmap_short = new ushort[originalWidth * originalHeight];
-        heightmap_raw = new float[xSize * zSize];
+        heightmapRaw = new float[xSize * zSize];
         heightmap = new float[xSize * zSize];
         for (int i = 0, z = 0; z < originalHeight; z++)
         {

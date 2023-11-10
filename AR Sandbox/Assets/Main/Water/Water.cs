@@ -31,8 +31,8 @@ public class Water : MonoBehaviour
     public ComputeShader WaterCS;
     ComputeBuffer verticesBuffer;
     ComputeBuffer fluxMapBuffer;
-    ComputeBuffer heightMapBuffer;
-    ComputeBuffer heightMapRawBuffer;
+    ComputeBuffer heightmapBuffer;
+    ComputeBuffer heightmapRawBuffer;
     ComputeBuffer depthMapBuffer;
 
     // Start is called before the first frame update
@@ -70,7 +70,7 @@ public class Water : MonoBehaviour
             WaterCS.SetBool("clearWater", clearWater);
         }
         heightMap = terrain.heightmap;
-        heightMapBuffer.SetData(heightMap);
+        heightmapBuffer.SetData(heightMap);
         WaterCS.Dispatch(2, 512/8, 424/8, 1);
         verticesBuffer.GetData(vertices);
         UpdateMesh();
@@ -79,8 +79,8 @@ public class Water : MonoBehaviour
     void UpdateHeights()
     {
         heightMap = terrain.heightmap;
-        heightMapBuffer.SetData(heightMap);
-        heightMapRawBuffer.SetData(terrain.heightmap_raw);
+        heightmapBuffer.SetData(heightMap);
+        heightmapRawBuffer.SetData(terrain.heightmapRaw);
         
         dt = Time.fixedDeltaTime;
 
@@ -117,16 +117,16 @@ public class Water : MonoBehaviour
 
         verticesBuffer = new ComputeBuffer(vertices.Length, sizeof(float) * 3);
         fluxMapBuffer = new ComputeBuffer(vertices.Length, sizeof(float) * 4);
-        heightMapBuffer = new ComputeBuffer(vertices.Length, sizeof(float));
-        heightMapRawBuffer = new ComputeBuffer(vertices.Length, sizeof(float));
+        heightmapBuffer = new ComputeBuffer(vertices.Length, sizeof(float));
+        heightmapRawBuffer = new ComputeBuffer(vertices.Length, sizeof(float));
         depthMapBuffer = new ComputeBuffer(vertices.Length, sizeof(float));
 
         WaterCS.SetBuffer(0, "vertices", verticesBuffer);
         WaterCS.SetBuffer(1, "vertices", verticesBuffer);
         WaterCS.SetBuffer(0, "fluxMap", fluxMapBuffer);
         WaterCS.SetBuffer(1, "fluxMap", fluxMapBuffer);
-        WaterCS.SetBuffer(0, "heightMap", heightMapBuffer);
-        WaterCS.SetBuffer(1, "heightMap", heightMapBuffer);
+        WaterCS.SetBuffer(0, "heightMap", heightmapBuffer);
+        WaterCS.SetBuffer(1, "heightMap", heightmapBuffer);
         WaterCS.SetBuffer(0, "depthMap", depthMapBuffer);
         WaterCS.SetBuffer(1, "depthMap", depthMapBuffer);
         WaterCS.SetBuffer(3, "depthMap", depthMapBuffer);
@@ -134,8 +134,8 @@ public class Water : MonoBehaviour
 
         //test
         WaterCS.SetBuffer(2, "vertices", verticesBuffer);
-        WaterCS.SetBuffer(2, "heightMap", heightMapBuffer);
-        WaterCS.SetBuffer(4, "heightMap_Raw", heightMapRawBuffer);
+        WaterCS.SetBuffer(2, "heightmap", heightmapBuffer);
+        WaterCS.SetBuffer(4, "heightmapRaw", heightmapRawBuffer);
         WaterCS.SetBuffer(2, "depthMap", depthMapBuffer);
         //
 
@@ -159,7 +159,7 @@ public class Water : MonoBehaviour
         mesh.uv = uvs;
         verticesBuffer.SetData(vertices);
         fluxMapBuffer.SetData(fluxMap);
-        heightMapBuffer.SetData(heightMap);
+        heightmapBuffer.SetData(heightMap);
         depthMapBuffer.SetData(depthMap);
     }
 
@@ -220,8 +220,8 @@ public class Water : MonoBehaviour
     {
         verticesBuffer.Release();
         fluxMapBuffer.Release();
-        heightMapBuffer.Release();
-        heightMapRawBuffer.Release();
+        heightmapBuffer.Release();
+        heightmapRawBuffer.Release();
         depthMapBuffer.Release();
     }
 }
