@@ -8,6 +8,7 @@
 
 RWStructuredBuffer<float3> vertices;
 RWStructuredBuffer<float> heightmap;
+RWStructuredBuffer<float> heightmap_Raw;
 RWTexture2D<float4> colors;
 
 //test
@@ -63,8 +64,8 @@ void ShortToInt (uint3 id : SV_DispatchThreadID)
     uint num = old[id.x];
     uint first = num & 0x0000FFFF;
     uint sec = (num & 0xFFFF0000) >> 16;
-    ny[id.x*2] = first;
-    ny[id.x*2+1] = sec;
+    ny[id.x*2] = (2000.0 - (float)first)/4.0;
+    ny[id.x*2+1] = (2000.0 - (float)sec)/4.0;
     
     //Noise reduction
     int i_step = id.x * 2;
@@ -101,6 +102,7 @@ void HMProcessing (uint3 id : SV_DispatchThreadID)
     //test
 
     //uint height = ny[originalIndex];
+    heightmap_Raw[resizedIndex] = ny[originalIndex];
     heightmap[resizedIndex] = (2000.0 - (float)height)/4.0;
 }
 

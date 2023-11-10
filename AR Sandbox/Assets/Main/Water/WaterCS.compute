@@ -2,6 +2,7 @@
 #pragma kernel UpdateHeights
 #pragma kernel UpdatePlane
 #pragma kernel WaterColor
+#pragma kernel AddWater
 
 float c;
 float xSize;
@@ -9,13 +10,30 @@ float zSize;
 float dt;
 float a;
 
+float rainHeight;
+
 bool clearWater;
 
 RWStructuredBuffer<float3> vertices;
 RWStructuredBuffer<float4> fluxMap; // x = top, y = bottom, z = left, w = right
 RWStructuredBuffer<float> depthMap;
 RWStructuredBuffer<float> heightMap;
+RWStructuredBuffer<float> heightMap_Raw;
 RWTexture2D<float4> colors;
+
+
+[numthreads(8,8,1)]
+void AddWater (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= xSize || id.y >= zSize)
+        return;
+
+    int vert = id.x + id.y * xSize;
+    if (heightMap_Raw[vert] > rainHeight)
+    {
+        depthMap[vert] += 1 * dt;
+    }
+}
 
 [numthreads(8,8,1)]
 void FindVelocity (uint3 id : SV_DispatchThreadID)

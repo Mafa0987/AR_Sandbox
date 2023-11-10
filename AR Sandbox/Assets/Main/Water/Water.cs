@@ -32,6 +32,7 @@ public class Water : MonoBehaviour
     ComputeBuffer verticesBuffer;
     ComputeBuffer fluxMapBuffer;
     ComputeBuffer heightMapBuffer;
+    ComputeBuffer heightMapRawBuffer;
     ComputeBuffer depthMapBuffer;
 
     // Start is called before the first frame update
@@ -79,6 +80,7 @@ public class Water : MonoBehaviour
     {
         heightMap = terrain.heightmap;
         heightMapBuffer.SetData(heightMap);
+        heightMapRawBuffer.SetData(terrain.heightmap_raw);
         
         dt = Time.fixedDeltaTime;
 
@@ -87,7 +89,9 @@ public class Water : MonoBehaviour
         WaterCS.SetFloat("xSize", xSize);
         WaterCS.SetFloat("zSize", zSize);
         WaterCS.SetFloat("a", a);
+        WaterCS.SetFloat("rainHeight", terrain.rainHeight);
 
+        WaterCS.Dispatch(4, 512/8, 424/8, 1);
         WaterCS.Dispatch(0, 512/8, 424/8, 1);
         WaterCS.Dispatch(1, 512/8, 424/8, 1);
         verticesBuffer.GetData(vertices);
@@ -114,6 +118,7 @@ public class Water : MonoBehaviour
         verticesBuffer = new ComputeBuffer(vertices.Length, sizeof(float) * 3);
         fluxMapBuffer = new ComputeBuffer(vertices.Length, sizeof(float) * 4);
         heightMapBuffer = new ComputeBuffer(vertices.Length, sizeof(float));
+        heightMapRawBuffer = new ComputeBuffer(vertices.Length, sizeof(float));
         depthMapBuffer = new ComputeBuffer(vertices.Length, sizeof(float));
 
         WaterCS.SetBuffer(0, "vertices", verticesBuffer);
@@ -130,6 +135,7 @@ public class Water : MonoBehaviour
         //test
         WaterCS.SetBuffer(2, "vertices", verticesBuffer);
         WaterCS.SetBuffer(2, "heightMap", heightMapBuffer);
+        WaterCS.SetBuffer(4, "heightMap_Raw", heightMapRawBuffer);
         WaterCS.SetBuffer(2, "depthMap", depthMapBuffer);
         //
 
@@ -215,6 +221,7 @@ public class Water : MonoBehaviour
         verticesBuffer.Release();
         fluxMapBuffer.Release();
         heightMapBuffer.Release();
+        heightMapRawBuffer.Release();
         depthMapBuffer.Release();
     }
 }

@@ -28,7 +28,7 @@ public class TerrainGen : MonoBehaviour
     //test
 
     public float[] heightmap;
-    public uint[] heightmap_uint;
+    public float[] heightmap_raw;
     public ushort[] heightmap_short;
 
 
@@ -49,12 +49,15 @@ public class TerrainGen : MonoBehaviour
 
     public float minTerrainHeight = 0f;
     public float maxTerrainHeight = 10f;
+    public float rainHeight = 10f;
+    public float rainOffset = 0f;
 
     //test
     ushort[] old;
     ComputeBuffer oldBuffer;
     uint[] ny;
     ComputeBuffer nyBuffer;
+    ComputeBuffer heightmapRawBuffer;
     //test
 
     // Start is called before the first frame update
@@ -86,7 +89,7 @@ public class TerrainGen : MonoBehaviour
         oldBuffer.SetData(heightmap_short);
         //Converts Heightmap to integer
         computeShader.Dispatch(2, 512*424/2/64, 1, 1);
-        nyBuffer.GetData(heightmap_uint);
+        nyBuffer.GetData(heightmap_raw);
         //Noise reduction
         //Cuts heightmap and converts to float
         computeShader.Dispatch(3, 512/8, 424/8, 1);
@@ -113,6 +116,7 @@ public class TerrainGen : MonoBehaviour
         vertices = new Vector3[xSize * zSize];
         verticesBuffer = new ComputeBuffer(vertices.Length, sizeof(float) * 3);
         heightBuffer = new ComputeBuffer(heightmap.Length, sizeof(float));
+        heightmapRawBuffer = new ComputeBuffer(heightmap_raw.Length, sizeof(float));
         averageBuffer = new ComputeBuffer(N*num_arrays, sizeof(uint));
         colors = new RenderTexture(xSize*4, zSize*4, 24);
         colors.enableRandomWrite = true;
@@ -142,11 +146,12 @@ public class TerrainGen : MonoBehaviour
 
         //test
         oldBuffer = new ComputeBuffer(512 * 424 / 2, sizeof(uint));
-        nyBuffer = new ComputeBuffer(512 * 424, sizeof(uint));
+        nyBuffer = new ComputeBuffer(512 * 424, sizeof(float));
         oldBuffer.SetData(heightmap_short);
         computeShader.SetBuffer(2, "old", oldBuffer);
         computeShader.SetBuffer(2, "ny", nyBuffer);
         computeShader.SetBuffer(3, "ny", nyBuffer);
+        computeShader.SetBuffer(3, "heightmap_Raw", heightmapRawBuffer);
         //test
     }
 
@@ -177,7 +182,7 @@ public class TerrainGen : MonoBehaviour
     {
         amplitude2 = Random.Range(0f, 1f);
         heightmap_short = new ushort[originalWidth * originalHeight];
-        heightmap_uint = new uint[originalWidth * originalHeight];
+        heightmap_raw = new float[xSize * zSize];
         heightmap = new float[xSize * zSize];
         for (int i = 0, z = 0; z < originalHeight; z++)
         {
@@ -292,10 +297,12 @@ public class TerrainGen : MonoBehaviour
         if (Input.GetKey(KeyCode.O))
         {
             maxTerrainHeight += 100f * dt;
+            rainHeight = maxTerrainHeight + rainOffset;
         }
         else if (Input.GetKey(KeyCode.L))
         {
             maxTerrainHeight -= 100f * dt;
+            rainHeight = maxTerrainHeight + rainOffset;
         }
         if (Input.GetKey(KeyCode.I))
         {
@@ -304,6 +311,16 @@ public class TerrainGen : MonoBehaviour
         else if (Input.GetKey(KeyCode.K))
         {
             minTerrainHeight -= 100f * dt;
+        }
+        if (Input.GetKey(KeyCode.U))
+        {
+            rainOffset += 100f * dt;
+            rainHeight = maxTerrainHeight + rainOffset;
+        }
+        else if (Input.GetKey(KeyCode.J))
+        {
+            rainOffset -= 100f * dt;
+            rainHeight = maxTerrainHeight + rainOffset;
         }
     }
 
