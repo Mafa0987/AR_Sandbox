@@ -230,6 +230,7 @@ public class TerrainGen : MonoBehaviour
         heightBuffer.Release();
         oldBuffer.Release();
         nyBuffer.Release();
+        heightmapRawBuffer.Release();
         averageBuffer.Release();
     }
 
