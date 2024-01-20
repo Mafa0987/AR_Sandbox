@@ -1,3 +1,5 @@
+using OpenCvSharp;
+using OpenCvSharp.Demo;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -14,6 +16,7 @@ public class test : MonoBehaviour
             array[i] = i/1000.0f;
         }
         int test = 1;
+        Cv2.ImRead("test");
     }
 
     // Update is called once per frame
