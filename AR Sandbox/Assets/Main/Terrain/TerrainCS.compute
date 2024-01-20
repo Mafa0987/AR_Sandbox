@@ -19,11 +19,71 @@ int N;
 int num_arrays;
 //test
 
-static float4 Blue = float4(0, 0, 1, 1);
-static float4 Green = float4(0.25, 0.5, 0.25, 1);
-static float4 Beige = float4(1, 0.25, 0, 1);
-static float4 Red = float4(0.5, 0, 0, 1);
+// static float4 Blue = float4(0, 0, 1, 1);
+// static float4 Green = float4(0.25, 0.5, 0.25, 1);
+// static float4 Beige = float4(1, 0.25, 0, 1);
+// static float4 Red = float4(0.5, 0, 0, 1);
+// static float4 White = float4(1, 1, 1, 1);
+
+// static float4 colorsArray[] = {
+//     Blue,
+//     Green,
+//     Beige,
+//     Red,
+//     White
+// };
+
+static float4 DarkerBlue = float4(0, 0, 0.3137, 1);
+static float4 DarkBlue = float4(0, 0.1176, 0.3922, 1);
+static float4 Blue = float4(0, 0.1961, 0.4, 1);
+static float4 LightBlue = float4(0.0745, 0.4235, 0.6275, 1);
+static float4 SkyBlue = float4(0.0941, 0.5490, 0.8039, 1);
+static float4 LightSkyBlue = float4(0.5294, 0.8078, 0.9804, 1);
+static float4 VeryLightSkyBlue = float4(0.6902, 0.8863, 1, 1);
+static float4 DarkGreen = float4(0, 0.3804, 0.2784, 1);
+static float4 Green = float4(0.0627, 0.4784, 0.1843, 1);
+static float4 PaleYellow = float4(0.9098, 0.8431, 0.4902, 1);
+static float4 Brown = float4(0.6314, 0.2627, 0, 1);
+static float4 DarkRed = float4(0.5098, 0.1176, 0.1176, 1);
+static float4 Grey = float4(0.6314, 0.6314, 0.6314, 1);
+static float4 LightGrey = float4(0.8078, 0.8078, 0.8078, 1);
 static float4 White = float4(1, 1, 1, 1);
+
+static float4 colorsArray[] = {
+    DarkerBlue,
+    DarkBlue,
+    Blue,
+    LightBlue,
+    SkyBlue,
+    LightSkyBlue,
+    VeryLightSkyBlue,
+    DarkGreen,
+    Green,
+    PaleYellow,
+    Brown,
+    DarkRed,
+    Grey,
+    LightGrey,
+    White
+};
+
+static float lowerBounds[] = {
+    0.0f,
+    0.1111f,
+    0.1667f,
+    0.2889f,
+    0.3778f,
+    0.4444f,
+    0.4778f,
+    0.5f,
+    0.5222f,
+    0.6222f,
+    0.7111f,
+    0.7556f,
+    0.8f,
+    0.8444f,
+    0.8889f
+};
 
 float maxTerrainHeight;
 float minTerrainHeight;
@@ -37,16 +97,15 @@ int zCut;
 
 float4 GetColor(float height)
 {
-    if (height <= 0.25)
-        return lerp(Blue, Green, height/0.25);
-    else if (height <= 0.5)
-        return lerp(Green, Beige, (height-0.25)/0.25);
-    else if (height <= 0.75)
-        return lerp(Beige, Red, (height-0.5)/0.25);
-    else if (height <= 1.0)
-        return lerp(Red, White, (height-0.75)/0.25);
-    else
-        return White;
+    for (int i = 0; i < 14; i++)
+    {
+        float lowerBound = lowerBounds[i];
+        float upperBound = lowerBounds[i+1];
+        float step = upperBound - lowerBound;
+        if (height <= upperBound)
+            return lerp(colorsArray[i], colorsArray[i+1], (height-lowerBound)/step);
+    }
+    return White;
 }
 
 void ColorSquare(uint2 idxy, int size, float4 color)
