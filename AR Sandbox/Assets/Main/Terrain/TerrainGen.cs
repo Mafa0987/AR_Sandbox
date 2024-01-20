@@ -90,10 +90,8 @@ public class TerrainGen : MonoBehaviour
 
     void CreateShapeGPU()
     {
-        // CreateHeightmap();
-        // oldBuffer.SetData(heightmap_short);
-        //For Sandbox
-        heightmap_short = msm.GetDepthData();
+        //CreateHeightmap();
+        //heightmap_short = msm.GetDepthData();
         oldBuffer.SetData(heightmap_short);
         //Converts Heightmap to integer
         computeShader.Dispatch(2, 512*424/2/64, 1, 1);
@@ -107,7 +105,7 @@ public class TerrainGen : MonoBehaviour
         computeShader.SetFloat("minTerrainHeight", minTerrainHeight);
 
         computeShader.Dispatch(0, 512/8, 424/8, 1);
-        verticesBuffer.GetData(vertices);
+        //verticesBuffer.GetData(vertices);
         computeShader.Dispatch(1, 128/8, 105/7, 1);
         verticesBuffer.GetData(vertices);
     }
@@ -192,19 +190,19 @@ public class TerrainGen : MonoBehaviour
         heightmap_short = new ushort[originalWidth * originalHeight];
         heightmapRaw = new float[xSize * zSize];
         heightmap = new float[xSize * zSize];
-        // for (int i = 0, z = 0; z < originalHeight; z++)
-        // {
-        //     for (int x = 0; x < originalWidth; x++)
-        //     {
-        //         ushort y =
-        //             (ushort)((amplitude1 * Mathf.PerlinNoise(x * frequency1,z * frequency1)
-        //             + amplitude2 * Mathf.PerlinNoise(x * frequency2, z * frequency2)
-        //             + amplitude3 * Mathf.PerlinNoise(x * frequency3, z * frequency3)
-        //                 * noiseStrength)*300*4/25);
-        //         heightmap_short[i] = y;
-        //         i++;
-        //     }
-        // }
+        for (int i = 0, z = 0; z < originalHeight; z++)
+        {
+            for (int x = 0; x < originalWidth; x++)
+            {
+                ushort y =
+                    (ushort)((amplitude1 * Mathf.PerlinNoise(x * frequency1,z * frequency1)
+                    + amplitude2 * Mathf.PerlinNoise(x * frequency2, z * frequency2)
+                    + amplitude3 * Mathf.PerlinNoise(x * frequency3, z * frequency3)
+                        * noiseStrength)*300*4/25);
+                heightmap_short[i] = y;
+                i++;
+            }
+        }
     }
 
     void CreateUV()
