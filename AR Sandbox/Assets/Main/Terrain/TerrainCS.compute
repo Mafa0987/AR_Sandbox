@@ -14,6 +14,7 @@ RWTexture2D<float4> colors;
 RWStructuredBuffer<uint> old;
 RWStructuredBuffer<uint> ny;
 RWStructuredBuffer<uint> average;
+RWStructuredBuffer<uint> sampleSums;
 int N;
 int num_arrays;
 int sampleIndex;
@@ -95,8 +96,12 @@ void ShortToInt (uint3 id : SV_DispatchThreadID)
     
     //add frame to average buffer
     int i_step = id.x * 2;
+    int oldSample1 = average[i_step + sampleIndex * N];
+    int oldSample2 = average[i_step + 1 + sampleIndex * N];
     average[i_step + sampleIndex * N] = first;
     average[i_step + 1 + sampleIndex * N] = sec;
+    sampleSums[i_step] += first - oldSample1;
+    sampleSums[i_step + 1] += sec - oldSample2;
 }
 
 [numthreads(8,8,1)]
@@ -108,12 +113,12 @@ void HMProcessing (uint3 id : SV_DispatchThreadID)
     int resizedIndex = id.x + id.y * xSize;
 
     //average noise reduction
-    uint sum = 0;
-    for (int i = 0; i < num_arrays; i++)
-    {
-        sum += average[originalIndex + i * N];
-    }
-    uint height = sum / num_arrays;
+    // uint sum = 0;
+    // for (int i = 0; i < num_arrays; i++)
+    // {
+    //     sum += average[originalIndex + i * N];
+    // }
+    uint height = sampleSums[originalIndex] / num_arrays;
     //test
 
     //uint height = ny[originalIndex];

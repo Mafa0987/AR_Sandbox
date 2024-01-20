@@ -28,6 +28,7 @@ public class TerrainGen : MonoBehaviour
     int N = 512 * 424;
     int num_arrays = 30;
     int sampleIndex = 0;
+    ComputeBuffer sampleSums;
     //test
 
     public float[] heightmap;
@@ -134,6 +135,7 @@ public class TerrainGen : MonoBehaviour
         heightBuffer = new ComputeBuffer(heightmap.Length, sizeof(float));
         heightmapRawBuffer = new ComputeBuffer(heightmapRaw.Length, sizeof(float));
         averageBuffer = new ComputeBuffer(N*num_arrays, sizeof(uint));
+        sampleSums = new ComputeBuffer(originalWidth * originalHeight, sizeof(uint));
         colors = new RenderTexture(xSize*4, zSize*4, 24);
         colors.enableRandomWrite = true;
         colors.Create();
@@ -169,6 +171,8 @@ public class TerrainGen : MonoBehaviour
         computeShader.SetBuffer(2, "ny", nyBuffer);
         computeShader.SetBuffer(3, "ny", nyBuffer);
         computeShader.SetBuffer(3, "heightmapRaw", heightmapRawBuffer);
+        computeShader.SetBuffer(2, "sampleSums", sampleSums);
+        computeShader.SetBuffer(3, "sampleSums", sampleSums);
         //test
     }
 
@@ -249,6 +253,7 @@ public class TerrainGen : MonoBehaviour
         nyBuffer.Release();
         heightmapRawBuffer.Release();
         averageBuffer.Release();
+        sampleSums.Release();
     }
 
     void Calibrate()
