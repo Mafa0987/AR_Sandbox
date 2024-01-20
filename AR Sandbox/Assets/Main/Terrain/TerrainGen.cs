@@ -27,6 +27,7 @@ public class TerrainGen : MonoBehaviour
     ComputeBuffer averageBuffer;
     int N = 512 * 424;
     int num_arrays = 30;
+    int sampleIndex = 0;
     //test
 
     public float[] heightmap;
@@ -95,6 +96,15 @@ public class TerrainGen : MonoBehaviour
         oldBuffer.SetData(heightmap_short);
         //Converts Heightmap to integer
         computeShader.Dispatch(2, 512*424/2/64, 1, 1);
+
+        //new sample test
+        if (sampleIndex == num_arrays - 1)
+            sampleIndex = 0;
+        else
+            sampleIndex++;
+        computeShader.SetInt("sampleIndex", sampleIndex);
+
+
         //Noise reduction
         //Cuts heightmap and converts to float
         computeShader.Dispatch(3, 512/8, 424/8, 1);
@@ -148,6 +158,7 @@ public class TerrainGen : MonoBehaviour
         //noise reduction
         computeShader.SetInt("N", N);
         computeShader.SetInt("num_arrays", num_arrays);
+        computeShader.SetInt("sampleIndex", sampleIndex);
         //---------------
 
         //test
