@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 using Random=UnityEngine.Random;
 
 [RequireComponent(typeof(MeshFilter))]
@@ -20,6 +21,9 @@ public class TerrainGen : MonoBehaviour
     int[] triangles;
     ComputeBuffer verticesBuffer;
     ComputeBuffer heightBuffer;
+
+    public Slider minTerrainSlider;
+    public Slider maxTerrainSlider;
 
     float timer = 0;
 
@@ -67,8 +71,8 @@ public class TerrainGen : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        xSize -= xCut * 2;
-        zSize -= zCut * 2;
+        xSize = originalWidth - xCut * 2;
+        zSize = originalHeight - zCut * 2;
         CreateTriangles();
         CreateHeightmap();
         CreateUV();
@@ -112,6 +116,9 @@ public class TerrainGen : MonoBehaviour
         heightBuffer.GetData(heightmap);
         heightmapRawBuffer.GetData(heightmapRaw);
         //Rest of the calculations
+        minTerrainHeight = minTerrainSlider.value;
+        maxTerrainHeight = maxTerrainSlider.value;
+        rainHeight = maxTerrainHeight + rainOffset;
         computeShader.SetFloat("maxTerrainHeight", maxTerrainHeight);
         computeShader.SetFloat("minTerrainHeight", minTerrainHeight);
 
@@ -346,5 +353,4 @@ public class TerrainGen : MonoBehaviour
             rainHeight = maxTerrainHeight + rainOffset;
         }
     }
-
 }
