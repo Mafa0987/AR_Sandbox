@@ -9,6 +9,7 @@ using Random=UnityEngine.Random;
 [RequireComponent(typeof(MeshFilter))]
 public class TerrainGen : MonoBehaviour
 {
+    Calibration calibration;
     public Material material;
     public GameObject terrainpos;
     public GameObject waterpos;
@@ -71,6 +72,7 @@ public class TerrainGen : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        calibration = GameObject.Find("Calibration").GetComponent<Calibration>();
         xSize = originalWidth - xCut * 2;
         zSize = originalHeight - zCut * 2;
         CreateTriangles();
@@ -116,9 +118,11 @@ public class TerrainGen : MonoBehaviour
         heightBuffer.GetData(heightmap);
         heightmapRawBuffer.GetData(heightmapRaw);
         //Rest of the calculations
-        minTerrainHeight = minTerrainSlider.value;
-        maxTerrainHeight = maxTerrainSlider.value;
-        rainHeight = maxTerrainHeight + rainOffset;
+        // minTerrainHeight = minTerrainSlider.value;
+        // maxTerrainHeight = maxTerrainSlider.value;
+        // rainHeight = maxTerrainHeight + rainOffset;
+        minTerrainHeight = calibration.minTerrainHeight;
+        maxTerrainHeight = calibration.maxTerrainHeight;
         computeShader.SetFloat("maxTerrainHeight", maxTerrainHeight);
         computeShader.SetFloat("minTerrainHeight", minTerrainHeight);
 
@@ -129,7 +133,7 @@ public class TerrainGen : MonoBehaviour
     }
     void UpdateMesh()
     {
-        Calibrate();
+        // Calibrate();
         mesh.vertices = vertices;
         material.mainTexture = colors;
         //mesh.RecalculateNormals();
@@ -263,94 +267,94 @@ public class TerrainGen : MonoBehaviour
         sampleSums.Release();
     }
 
-    void Calibrate()
-    {
-        float dt = Time.deltaTime;
-        float speed = 20f * dt;
-        float scaleSpeed = 0.1f * dt;
-        float rotateSpeed = 5f * dt;
+    // void Calibrate()
+    // {
+    //     float dt = Time.deltaTime;
+    //     float speed = 20f * dt;
+    //     float scaleSpeed = 0.1f * dt;
+    //     float rotateSpeed = 5f * dt;
 
-        if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.UpArrow))
-        {
-            terrainpos.transform.localScale += new Vector3(0, 0, scaleSpeed);
-            waterpos.transform.localScale += new Vector3(0, 0, scaleSpeed);
-        }
-        else if (Input.GetKey(KeyCode.UpArrow))
-        {
-            terrainpos.transform.position += new Vector3(0, 0, speed);
-            waterpos.transform.position += new Vector3(0, 0, speed);
-        }
+    //     if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.UpArrow))
+    //     {
+    //         terrainpos.transform.localScale += new Vector3(0, 0, scaleSpeed);
+    //         waterpos.transform.localScale += new Vector3(0, 0, scaleSpeed);
+    //     }
+    //     else if (Input.GetKey(KeyCode.UpArrow))
+    //     {
+    //         terrainpos.transform.position += new Vector3(0, 0, speed);
+    //         waterpos.transform.position += new Vector3(0, 0, speed);
+    //     }
 
-        if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.DownArrow))
-        {
-            terrainpos.transform.localScale += new Vector3(0, 0, -scaleSpeed);
-            waterpos.transform.localScale += new Vector3(0, 0, -scaleSpeed);
-        }
-        else if (Input.GetKey(KeyCode.DownArrow))
-        {
-            terrainpos.transform.position += new Vector3(0, 0, -speed);
-            waterpos.transform.position += new Vector3(0, 0, -speed);
-        }
+    //     if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.DownArrow))
+    //     {
+    //         terrainpos.transform.localScale += new Vector3(0, 0, -scaleSpeed);
+    //         waterpos.transform.localScale += new Vector3(0, 0, -scaleSpeed);
+    //     }
+    //     else if (Input.GetKey(KeyCode.DownArrow))
+    //     {
+    //         terrainpos.transform.position += new Vector3(0, 0, -speed);
+    //         waterpos.transform.position += new Vector3(0, 0, -speed);
+    //     }
 
-        if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.RightArrow))
-        {
-            terrainpos.transform.localScale += new Vector3(scaleSpeed, 0, 0);
-            waterpos.transform.localScale += new Vector3(scaleSpeed, 0, 0);
-        }
-        else if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.RightArrow))
-        {
-            terrainpos.transform.rotation *= Quaternion.Euler(0, rotateSpeed, 0);
-            waterpos.transform.rotation *= Quaternion.Euler(0, rotateSpeed, 0);
-        }
-        else if (Input.GetKey(KeyCode.RightArrow))
-        {
-            terrainpos.transform.position += new Vector3(speed, 0, 0);
-            waterpos.transform.position += new Vector3(speed, 0, 0);
-        }
+    //     if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.RightArrow))
+    //     {
+    //         terrainpos.transform.localScale += new Vector3(scaleSpeed, 0, 0);
+    //         waterpos.transform.localScale += new Vector3(scaleSpeed, 0, 0);
+    //     }
+    //     else if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.RightArrow))
+    //     {
+    //         terrainpos.transform.rotation *= Quaternion.Euler(0, rotateSpeed, 0);
+    //         waterpos.transform.rotation *= Quaternion.Euler(0, rotateSpeed, 0);
+    //     }
+    //     else if (Input.GetKey(KeyCode.RightArrow))
+    //     {
+    //         terrainpos.transform.position += new Vector3(speed, 0, 0);
+    //         waterpos.transform.position += new Vector3(speed, 0, 0);
+    //     }
 
-        if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.LeftArrow))
-        {
-            terrainpos.transform.localScale += new Vector3(-scaleSpeed, 0, 0);
-            waterpos.transform.localScale += new Vector3(-scaleSpeed, 0, 0);
-        }
-        else if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.LeftArrow))
-        {
-            terrainpos.transform.rotation *= Quaternion.Euler(0, -rotateSpeed, 0);
-            waterpos.transform.rotation *= Quaternion.Euler(0, -rotateSpeed, 0);
-        }
-        else if (Input.GetKey(KeyCode.LeftArrow))
-        {
-            terrainpos.transform.position += new Vector3(-speed, 0, 0);
-            waterpos.transform.position += new Vector3(-speed, 0, 0);
-        }
+    //     if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.LeftArrow))
+    //     {
+    //         terrainpos.transform.localScale += new Vector3(-scaleSpeed, 0, 0);
+    //         waterpos.transform.localScale += new Vector3(-scaleSpeed, 0, 0);
+    //     }
+    //     else if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.LeftArrow))
+    //     {
+    //         terrainpos.transform.rotation *= Quaternion.Euler(0, -rotateSpeed, 0);
+    //         waterpos.transform.rotation *= Quaternion.Euler(0, -rotateSpeed, 0);
+    //     }
+    //     else if (Input.GetKey(KeyCode.LeftArrow))
+    //     {
+    //         terrainpos.transform.position += new Vector3(-speed, 0, 0);
+    //         waterpos.transform.position += new Vector3(-speed, 0, 0);
+    //     }
 
-        if (Input.GetKey(KeyCode.O))
-        {
-            maxTerrainHeight += 100f * dt;
-            rainHeight = maxTerrainHeight + rainOffset;
-        }
-        else if (Input.GetKey(KeyCode.L))
-        {
-            maxTerrainHeight -= 100f * dt;
-            rainHeight = maxTerrainHeight + rainOffset;
-        }
-        if (Input.GetKey(KeyCode.I))
-        {
-            minTerrainHeight += 100f * dt;
-        }
-        else if (Input.GetKey(KeyCode.K))
-        {
-            minTerrainHeight -= 100f * dt;
-        }
-        if (Input.GetKey(KeyCode.U))
-        {
-            rainOffset += 100f * dt;
-            rainHeight = maxTerrainHeight + rainOffset;
-        }
-        else if (Input.GetKey(KeyCode.J))
-        {
-            rainOffset -= 100f * dt;
-            rainHeight = maxTerrainHeight + rainOffset;
-        }
-    }
+    //     if (Input.GetKey(KeyCode.O))
+    //     {
+    //         maxTerrainHeight += 100f * dt;
+    //         rainHeight = maxTerrainHeight + rainOffset;
+    //     }
+    //     else if (Input.GetKey(KeyCode.L))
+    //     {
+    //         maxTerrainHeight -= 100f * dt;
+    //         rainHeight = maxTerrainHeight + rainOffset;
+    //     }
+    //     if (Input.GetKey(KeyCode.I))
+    //     {
+    //         minTerrainHeight += 100f * dt;
+    //     }
+    //     else if (Input.GetKey(KeyCode.K))
+    //     {
+    //         minTerrainHeight -= 100f * dt;
+    //     }
+    //     if (Input.GetKey(KeyCode.U))
+    //     {
+    //         rainOffset += 100f * dt;
+    //         rainHeight = maxTerrainHeight + rainOffset;
+    //     }
+    //     else if (Input.GetKey(KeyCode.J))
+    //     {
+    //         rainOffset -= 100f * dt;
+    //         rainHeight = maxTerrainHeight + rainOffset;
+    //     }
+    // }
 }

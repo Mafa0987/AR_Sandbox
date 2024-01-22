@@ -8,6 +8,7 @@ using UnityEngine;
 public class Water : MonoBehaviour
 {
     Mesh mesh;
+    Calibration calibration;
     Vector3[] vertices;
     float[] heightMap;
     float[] depthMap;
@@ -38,6 +39,7 @@ public class Water : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        calibration = GameObject.Find("Calibration").GetComponent<Calibration>();
         xSize = terrain.xSize;
         zSize = terrain.zSize;
         mesh = new Mesh();
@@ -89,7 +91,7 @@ public class Water : MonoBehaviour
         WaterCS.SetFloat("xSize", xSize);
         WaterCS.SetFloat("zSize", zSize);
         WaterCS.SetFloat("a", a);
-        WaterCS.SetFloat("rainHeight", terrain.rainHeight);
+        WaterCS.SetFloat("rainHeight", calibration.rainHeight);
 
         WaterCS.Dispatch(4, 512/8, 424/8, 1);
         WaterCS.Dispatch(0, 512/8, 424/8, 1);
