@@ -73,8 +73,8 @@ public class TerrainGen : MonoBehaviour
     void Start()
     {
         calibration = GameObject.Find("Calibration").GetComponent<Calibration>();
-        xSize = originalWidth - xCut * 2;
-        zSize = originalHeight - zCut * 2;
+        xSize = originalWidth - calibration.xCut * 2;
+        zSize = originalHeight - calibration.zCut * 2;
         CreateTriangles();
         CreateHeightmap();
         CreateUV();
@@ -166,8 +166,8 @@ public class TerrainGen : MonoBehaviour
         computeShader.SetInt("zSize", zSize);
         computeShader.SetInt("originalWidth", originalWidth);
         computeShader.SetInt("originalHeight", originalHeight);
-        computeShader.SetInt("xCut", xCut);
-        computeShader.SetInt("zCut", zCut);
+        computeShader.SetInt("xCut", calibration.xCut);
+        computeShader.SetInt("zCut", calibration.zCut);
         //noise reduction
         computeShader.SetInt("N", N);
         computeShader.SetInt("num_arrays", num_arrays);
