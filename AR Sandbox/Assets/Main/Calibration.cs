@@ -8,6 +8,7 @@ using UnityEngine.SceneManagement;
 
 public class Calibration : MonoBehaviour
 {
+    GameObject ui;
     LineRenderer line1;
     LineRenderer line2;
     LineRenderer line3;
@@ -24,13 +25,14 @@ public class Calibration : MonoBehaviour
     public float minTerrainHeight = 0f;
     public float rainOffset = 0f;
     public float rainHeight = 10;
-    public int xCut = 100;
+    public int xCut = 0;
     public int zCut = 0;
     int xCutNew = 0;
     int zCutNew = 0;
     // Start is called before the first frame update
     void Start()
     {
+        ui = GameObject.Find("UI");
         Camera = GameObject.Find("Main Camera").transform;
         sphere = GameObject.Find("Sphere").transform;
         line1 = GameObject.Find("Line1").GetComponent<LineRenderer>();
@@ -94,12 +96,19 @@ public class Calibration : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        DrawRectangle();
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            ui.SetActive(!ui.activeSelf);
+        }
         sphere.position = terrainpos.transform.position;
-        minTerrainHeight = minTerrainSlider.value;
-        maxTerrainHeight = maxTerrainSlider.value;
-        xCutNew = (int)xCutSlider.value;
-        zCutNew = (int)zCutSlider.value;
+        if (ui.activeSelf)
+        {
+            DrawRectangle();
+            minTerrainHeight = minTerrainSlider.value;
+            maxTerrainHeight = maxTerrainSlider.value;
+            xCutNew = (int)xCutSlider.value;
+            zCutNew = (int)zCutSlider.value;
+        }
         rainHeight = maxTerrainHeight + rainOffset;
         CalibrateTransform();
     }
@@ -248,22 +257,25 @@ public class Calibration : MonoBehaviour
 
     void OnApplicationQuit()
     {
-        Debug.Log("Saving calibration");
-        PlayerPrefs.SetFloat("maxTerrainHeight", maxTerrainHeight);
-        float test = PlayerPrefs.GetFloat("maxTerrainHeight");
-        PlayerPrefs.SetFloat("minTerrainHeight", minTerrainHeight);
-        PlayerPrefs.SetFloat("rainOffset", rainOffset);
-        PlayerPrefs.SetInt("xCut", xCut);
-        PlayerPrefs.SetInt("zCut", zCut);
-        SaveTransform(terrainpos.transform);
-        SaveTransform(waterpos.transform);
+        Save();
     }
 
     public void ApplyCut()
     {
+        Save();
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    void Save()
+    {
+        Debug.Log("Saving calibration");
+        PlayerPrefs.SetFloat("maxTerrainHeight", maxTerrainHeight);
+        PlayerPrefs.SetFloat("minTerrainHeight", minTerrainHeight);
+        PlayerPrefs.SetFloat("rainOffset", rainOffset);
         PlayerPrefs.SetInt("xCut", xCutNew);
         PlayerPrefs.SetInt("zCut", zCutNew);
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        SaveTransform(terrainpos.transform);
+        SaveTransform(waterpos.transform);
     }
 
 }
