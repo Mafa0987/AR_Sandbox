@@ -116,7 +116,7 @@ void HMProcessing (uint3 id : SV_DispatchThreadID)
     height = (2000.0 - height)/4.0;
 
     heightmapRaw[resizedIndex] = (2000.0 - (float)ny[originalIndex])/4.0;
-    if (abs(height-heightmap[resizedIndex])>=3.0)
+    if (abs(height-heightmap[resizedIndex])>=0.5)
         heightmap[resizedIndex] = height;
 }
 
