@@ -14,7 +14,6 @@ public class Calibration : MonoBehaviour
     LineRenderer line3;
     LineRenderer line4;
     Transform Camera;
-    Transform sphere;
     GameObject terrainpos;
     GameObject waterpos;
     Slider maxTerrainSlider;
@@ -34,7 +33,6 @@ public class Calibration : MonoBehaviour
     {
         ui = GameObject.Find("UI");
         Camera = GameObject.Find("Main Camera").transform;
-        sphere = GameObject.Find("Sphere").transform;
         line1 = GameObject.Find("Line1").GetComponent<LineRenderer>();
         line2 = GameObject.Find("Line2").GetComponent<LineRenderer>();
         line3 = GameObject.Find("Line3").GetComponent<LineRenderer>();
@@ -100,7 +98,6 @@ public class Calibration : MonoBehaviour
         {
             ui.SetActive(!ui.activeSelf);
         }
-        sphere.position = terrainpos.transform.position;
         if (ui.activeSelf)
         {
             DrawRectangle();
