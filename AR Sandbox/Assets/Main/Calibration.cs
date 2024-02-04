@@ -124,14 +124,14 @@ public class Calibration : MonoBehaviour
         int xCutDiff2 = xCutNew.y - xCut.y;
         int zCutDiff1 = zCutNew.x - zCut.x;
         int zCutDiff2 = zCutNew.y - zCut.y;
-        int xSize = 512 - (xCut.x + xCut.y);;
+        int xSize = 512 - (xCut.x + xCut.y);
         int zSize = 424 - (zCut.x + zCut.y);
         line1.widthMultiplier = 5f;
         line2.widthMultiplier = 5f;
         line3.widthMultiplier = 5f;
         line4.widthMultiplier = 5f;
-        Vector3 point1 = terrainpos.transform.position + new Vector3(xCutDiff1, 500, zCutDiff1);
-        Vector3 point2 = point1 + new Vector3(xSize - (xCutDiff1+xCutDiff2) * terrainpos.transform.localScale.x, 0, 0);
+        Vector3 point1 = terrainpos.transform.position + new Vector3(xCutDiff1 * terrainpos.transform.localScale.x, 500, zCutDiff1 * terrainpos.transform.localScale.z);
+        Vector3 point2 = point1 + new Vector3((xSize - (xCutDiff1+xCutDiff2)) * terrainpos.transform.localScale.x, 0, 0);
         Vector3 point3 = point2 + new Vector3(0, 0, (zSize - (zCutDiff1+zCutDiff2)) * terrainpos.transform.localScale.z);
         Vector3 point4 = point3 + new Vector3((-xSize + (xCutDiff1+xCutDiff2)) * terrainpos.transform.localScale.x, 0, 0);
         line1.SetPosition(0, point1);
