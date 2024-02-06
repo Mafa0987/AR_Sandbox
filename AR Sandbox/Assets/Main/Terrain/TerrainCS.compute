@@ -184,8 +184,8 @@ void DrawLine(float x1, float y1, float x2, float y2, RWTexture2D<float4> colors
     float y = (float)y1;
     for (int i = 0; i <= steps; i++)
     {
-        colors[uint2(round(x), round(y))] = float4(0, 0, 0, 1);
-        //DrawPixel(round(x), round(y), colors);
+        //colors[uint2(round(x), round(y))] = float4(0, 0, 0, 1);
+        DrawPixel(round(x), round(y), colors);
         x += xstep;
         y += ystep;
     }
