@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UI;
 using Random=UnityEngine.Random;
 
@@ -117,6 +118,10 @@ public class TerrainGen : MonoBehaviour
         computeShader.Dispatch(3, 512/8, 424/8, 1);
         heightBuffer.GetData(heightmap);
         heightmapRawBuffer.GetData(heightmapRaw);
+        if (Input.anyKeyDown)
+        {
+            SaveAsJpg();
+        }
         //Rest of the calculations
         // minTerrainHeight = minTerrainSlider.value;
         // maxTerrainHeight = maxTerrainSlider.value;
@@ -137,6 +142,27 @@ public class TerrainGen : MonoBehaviour
         mesh.vertices = vertices;
         material.mainTexture = colors;
         //mesh.RecalculateNormals();
+    }
+
+    void SaveAsJpg()
+    {
+        Texture2D tex = new Texture2D(xSize, zSize, TextureFormat.RGB24, false);
+        int x = 0;
+        int y = 0;
+        for (int i = 0; i < heightmapRaw.Length; i++)
+        {
+            float color = Mathf.Clamp(heightmapRaw[i] / 500, 0, 1);
+            tex.SetPixel(x, y, new Color(color, color, color));
+            x++;
+            if (x >= xSize)
+            {
+                x = 0;
+                y++;
+            }
+        }
+        //tex.Apply();
+        byte[] bytes = tex.EncodeToJPG();
+        System.IO.File.WriteAllBytes("Assets/Main/Terrain/terrain.jpg", bytes);
     }
 
     void InitShader()
