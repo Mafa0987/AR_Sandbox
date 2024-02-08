@@ -100,7 +100,7 @@ public class TerrainGen : MonoBehaviour
     void CreateShapeGPU()
     {
         //CreateHeightmap();
-        //heightmap_short = msm.GetDepthData();
+        heightmap_short = msm.GetDepthData();
         oldBuffer.SetData(heightmap_short);
         //Converts Heightmap to integer
         computeShader.Dispatch(2, 512*424/2/64, 1, 1);
@@ -118,9 +118,10 @@ public class TerrainGen : MonoBehaviour
         computeShader.Dispatch(3, 512/8, 424/8, 1);
         heightBuffer.GetData(heightmap);
         heightmapRawBuffer.GetData(heightmapRaw);
-        if (Input.anyKeyDown)
+        if (Input.GetKeyDown("space"))
         {
             SaveAsJpg();
+            Debug.Log("space was pressed");
         }
         //Rest of the calculations
         // minTerrainHeight = minTerrainSlider.value;
@@ -151,8 +152,8 @@ public class TerrainGen : MonoBehaviour
         int y = 0;
         for (int i = 0; i < heightmapRaw.Length; i++)
         {
-            float color = Mathf.Clamp(heightmapRaw[i] / 500, 0, 1);
-            tex.SetPixel(x, y, new Color(color, color, color));
+            float height = Mathf.Clamp(heightmapRaw[i] / 4500, 0, 1);
+            tex.SetPixel(x, y, GetColor(height));
             x++;
             if (x >= xSize)
             {
@@ -163,6 +164,24 @@ public class TerrainGen : MonoBehaviour
         //tex.Apply();
         byte[] bytes = tex.EncodeToJPG();
         System.IO.File.WriteAllBytes("Assets/Main/Terrain/terrain.jpg", bytes);
+    }
+
+    Color GetColor(float height)
+    {
+        if (height == 0)
+            return new Color(0, 0, 0);
+        Color[] colors = {new Color(1, 0, 0), new Color(1, 0.5f, 0), new Color(1, 1, 0), new Color(0, 1, 0), new Color(0, 0, 1)};
+        for (int i = 0; i < 4; i++)
+        {
+            float lowerBound = i / 4f;
+            float upperBound = lowerBound + 1f / 4f;
+            float step = upperBound - lowerBound;
+            if (height <= upperBound)
+                return Color.Lerp(colors[i], colors[i+1], (height-lowerBound)/step);
+        }
+        if (height > 1)
+            Debug.Log("error");
+        return new Color(0, 0, 1);
     }
 
     void InitShader()
@@ -242,19 +261,19 @@ public class TerrainGen : MonoBehaviour
         heightmap_short = new ushort[originalWidth * originalHeight];
         heightmapRaw = new float[xSize * zSize];
         heightmap = new float[xSize * zSize];
-        for (int i = 0, z = 0; z < originalHeight; z++)
-        {
-            for (int x = 0; x < originalWidth; x++)
-            {
-                ushort y =
-                    (ushort)((amplitude1 * Mathf.PerlinNoise(x * frequency1,z * frequency1)
-                    + amplitude2 * Mathf.PerlinNoise(x * frequency2, z * frequency2)
-                    + amplitude3 * Mathf.PerlinNoise(x * frequency3, z * frequency3)
-                        * noiseStrength)*300*4/25/2);
-                heightmap_short[i] = y;
-                i++;
-            }
-        }
+        // for (int i = 0, z = 0; z < originalHeight; z++)
+        // {
+        //     for (int x = 0; x < originalWidth; x++)
+        //     {
+        //         ushort y =
+        //             (ushort)((amplitude1 * Mathf.PerlinNoise(x * frequency1,z * frequency1)
+        //             + amplitude2 * Mathf.PerlinNoise(x * frequency2, z * frequency2)
+        //             + amplitude3 * Mathf.PerlinNoise(x * frequency3, z * frequency3)
+        //                 * noiseStrength)*300*4/25/2);
+        //         heightmap_short[i] = y;
+        //         i++;
+        //     }
+        // }
     }
 
     void CreateUV()
