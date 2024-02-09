@@ -122,6 +122,31 @@ public class TerrainGen : MonoBehaviour
         computeShader.Dispatch(3, 512/8, 424/8, 1);
         heightBuffer.GetData(heightmap);
         heightmapRawBuffer.GetData(heightmapRaw);
+        //CaptureImages();
+        //Rest of the calculations
+        // minTerrainHeight = minTerrainSlider.value;
+        // maxTerrainHeight = maxTerrainSlider.value;
+        // rainHeight = maxTerrainHeight + rainOffset;
+        minTerrainHeight = calibration.minTerrainHeight;
+        maxTerrainHeight = calibration.maxTerrainHeight;
+        computeShader.SetFloat("maxTerrainHeight", maxTerrainHeight);
+        computeShader.SetFloat("minTerrainHeight", minTerrainHeight);
+
+        computeShader.Dispatch(0, 512/8, 424/8, 1);
+        //verticesBuffer.GetData(vertices);
+        computeShader.Dispatch(1, 128/8, 105/7, 1);
+        verticesBuffer.GetData(vertices);
+    }
+    void UpdateMesh()
+    {
+        // Calibrate();
+        mesh.vertices = vertices;
+        material.mainTexture = colors;
+        //mesh.RecalculateNormals();
+    }
+
+    void CaptureImages()
+    {
         if (Input.GetKeyDown("space") | run)
         {
             run = true;
@@ -146,26 +171,6 @@ public class TerrainGen : MonoBehaviour
                 timerImage += 1;
             }
         }
-        //Rest of the calculations
-        // minTerrainHeight = minTerrainSlider.value;
-        // maxTerrainHeight = maxTerrainSlider.value;
-        // rainHeight = maxTerrainHeight + rainOffset;
-        minTerrainHeight = calibration.minTerrainHeight;
-        maxTerrainHeight = calibration.maxTerrainHeight;
-        computeShader.SetFloat("maxTerrainHeight", maxTerrainHeight);
-        computeShader.SetFloat("minTerrainHeight", minTerrainHeight);
-
-        computeShader.Dispatch(0, 512/8, 424/8, 1);
-        //verticesBuffer.GetData(vertices);
-        computeShader.Dispatch(1, 128/8, 105/7, 1);
-        verticesBuffer.GetData(vertices);
-    }
-    void UpdateMesh()
-    {
-        // Calibrate();
-        mesh.vertices = vertices;
-        material.mainTexture = colors;
-        //mesh.RecalculateNormals();
     }
 
     void SaveAsJpgColor()
