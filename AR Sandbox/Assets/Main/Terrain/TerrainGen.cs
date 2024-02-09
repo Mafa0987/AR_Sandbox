@@ -10,6 +10,10 @@ using Random=UnityEngine.Random;
 [RequireComponent(typeof(MeshFilter))]
 public class TerrainGen : MonoBehaviour
 {
+    int number = 0;
+    bool run = false;
+    float timerImage = 0;
+    int numImages = 0;
     Calibration calibration;
     public Material material;
     public GameObject terrainpos;
@@ -118,10 +122,29 @@ public class TerrainGen : MonoBehaviour
         computeShader.Dispatch(3, 512/8, 424/8, 1);
         heightBuffer.GetData(heightmap);
         heightmapRawBuffer.GetData(heightmapRaw);
-        if (Input.GetKeyDown("space"))
+        if (Input.GetKeyDown("space") | run)
         {
-            SaveAsJpg();
-            Debug.Log("space was pressed");
+            run = true;
+            if (timerImage >= 6)
+            {
+                SaveAsJpgColor();
+                SaveAsJpgGray();
+                number += 1;
+                Debug.Log("space was pressed");
+                timerImage = 0;
+                if (numImages >= 100){
+                    run = false;
+                    Debug.Log("images finished");
+                    numImages = 0;
+                }
+                else{
+                    numImages += 1;
+                }
+            }
+            else
+            {
+                timerImage += 1;
+            }
         }
         //Rest of the calculations
         // minTerrainHeight = minTerrainSlider.value;
@@ -145,7 +168,7 @@ public class TerrainGen : MonoBehaviour
         //mesh.RecalculateNormals();
     }
 
-    void SaveAsJpg()
+    void SaveAsJpgColor()
     {
         Texture2D tex = new Texture2D(xSize, zSize, TextureFormat.RGB24, false);
         int x = 0;
@@ -163,7 +186,28 @@ public class TerrainGen : MonoBehaviour
         }
         //tex.Apply();
         byte[] bytes = tex.EncodeToJPG();
-        System.IO.File.WriteAllBytes("Assets/Main/Terrain/terrain.jpg", bytes);
+        System.IO.File.WriteAllBytes("C:/Users/mkf99/HandTracking/FistColor/" + number + ".jpg", bytes);
+    }
+
+    void SaveAsJpgGray()
+    {
+        Texture2D tex = new Texture2D(xSize, zSize, TextureFormat.RGB24, false);
+        int x = 0;
+        int y = 0;
+        for (int i = 0; i < heightmapRaw.Length; i++)
+        {
+            float height = Mathf.Clamp(heightmapRaw[i] / 4500, 0, 1);
+            tex.SetPixel(x, y, new Color(height, height, height));
+            x++;
+            if (x >= xSize)
+            {
+                x = 0;
+                y++;
+            }
+        }
+        //tex.Apply();
+        byte[] bytes = tex.EncodeToJPG();
+        System.IO.File.WriteAllBytes("C:/Users/mkf99/HandTracking/FistGray/" + number + ".jpg", bytes);
     }
 
     Color GetColor(float height)
