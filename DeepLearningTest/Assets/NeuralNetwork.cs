@@ -5,6 +5,7 @@ using System;
 
 public class NeuralNetwork : MonoBehaviour
 {
+    public MultiSourceManager msm;
     public Texture2D inputTexture;
     ITensorAllocator allocator;
     Ops ops;
@@ -16,69 +17,58 @@ public class NeuralNetwork : MonoBehaviour
     IWorker worker2;
     TextureTransform transformLayout;
     TensorFloat inputTensor;
-    Texture2D BITCH;
+    Texture2D tensorTexture;
     Texture2D scaledTexture;
     public RawImage rawImage;
     float[] bilde;
+    ushort[] kinectDepth;
+    Texture2D kinectColor;
 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        scaledTexture = Bilinear(inputTexture, 240, 240);
         bilde = new float[240*240*3];
-        BITCH = new Texture2D(240, 240);
-        for (int y = 0; y < 240; y++)
-        {
-            for (int x = 0; x < 240; x++)
-            {
-                bilde[x*3 + y*240*3] = scaledTexture.GetPixel(x, 239-y).r;
-                bilde[x*3+1 + y*240*3] = scaledTexture.GetPixel(x, 239-y).g;
-                bilde[x*3+2 + y*240*3] = scaledTexture.GetPixel(x, 239-y).b;
-            }
-        }
-        //transformLayout.SetTensorLayout(TensorLayout.NHWC);
-        //TensorFloat temp = TextureConverter.ToTensor(inputTexture, channels: 3);
+        tensorTexture = new Texture2D(240, 240);
+        
         allocator = new TensorCachingAllocator();
         ops = WorkerFactory.CreateOps(BackendType.GPUCompute, allocator);
-        TensorShape shape = new TensorShape(1, 240, 240, 3);
-        inputTensor = new TensorFloat(shape, bilde);
-        inputTensor = ops.Mul(inputTensor, 255.0f);
         runtimeModel1 = ModelLoader.Load(modelAsset1);
         runtimeModel2 = ModelLoader.Load(modelAsset2);
         worker1 = WorkerFactory.CreateWorker(BackendType.GPUCompute, runtimeModel1);
         worker2 = WorkerFactory.CreateWorker(BackendType.GPUCompute, runtimeModel2);
-        inputTensor.MakeReadable();
-        for (int y = 0; y < 240; y++)
-        {
-            for (int x = 0; x < 240; x++)
-            {
-                //print("r:" + inputTensor[0, 0, i, j] + " g:" + inputTensor[0, 1, i, j] + " b:" + inputTensor[0, 2, i, j]);
-                BITCH.SetPixel(x, 239-y, new Color(inputTensor[0, y, x, 0]/255f, inputTensor[0, y, x, 1]/255f, inputTensor[0, y, x, 2]/255f));
-            }
-        }
-        BITCH.Apply();
-        rawImage.texture = BITCH;
+
     }
 
     // Update is called once per frame
     void Update()
     {
+        kinectDepth = msm.GetDepthData();
+        kinectColor = processDepthData(kinectDepth, 124, 88, 19, 5);
+        //rawImage.texture = kinectColor;
         if (Input.GetMouseButtonDown(0))
         {
+            scaledTexture = Bilinear(kinectColor, 240, 240);
+            for (int y = 0; y < 240; y++)
+            {
+                for (int x = 0; x < 240; x++)
+                {
+                    bilde[x*3 + y*240*3] = scaledTexture.GetPixel(x, 239-y).r;
+                    bilde[x*3+1 + y*240*3] = scaledTexture.GetPixel(x, 239-y).g;
+                    bilde[x*3+2 + y*240*3] = scaledTexture.GetPixel(x, 239-y).b;
+                }
+            }
+            TensorShape shape = new TensorShape(1, 240, 240, 3);
+            inputTensor = new TensorFloat(shape, bilde);
+            inputTensor = ops.Mul(inputTensor, 255.0f);
             worker1.Execute(inputTensor);
             TensorFloat outputTensor1 = worker1.PeekOutput() as TensorFloat;
             var coordinates = outputTensor1;
             coordinates.MakeReadable();
-
-            var x = coordinates[0];
-            var y = coordinates[1];
-            Debug.Log($"x: {x}, y: {y}");
+            var x_cord = coordinates[0];
+            var y_cord = coordinates[1];
+            Debug.Log($"x: {x_cord}, y: {y_cord}");
             inputTensor.MakeReadable();
-            BITCH.SetPixel((int)x, (int)(240-y), new Color(0, 1, 0));
-            BITCH.Apply();
-            rawImage.texture = BITCH;
-
             worker2.Execute(inputTensor);
             TensorFloat outputTensor2 = worker2.PeekOutput() as TensorFloat;
             var probabilities = outputTensor2;
@@ -88,6 +78,17 @@ public class NeuralNetwork : MonoBehaviour
             var predictedNumber = indexOfMaxProba[0];
             var probability = probabilities[predictedNumber];
             Debug.Log($"Predicted number: {predictedNumber} with probability: {probability}");
+            inputTensor.MakeReadable();
+            for (int y = 0; y < 240; y++)
+            {
+                for (int x = 0; x < 240; x++)
+                {
+                    //print("r:" + inputTensor[0, 0, i, j] + " g:" + inputTensor[0, 1, i, j] + " b:" + inputTensor[0, 2, i, j]);
+                    tensorTexture.SetPixel(x, 239-y, new Color(inputTensor[0, y, x, 0]/255f, inputTensor[0, y, x, 1]/255f, inputTensor[0, y, x, 2]/255f));
+                }
+            }
+            tensorTexture.Apply();
+            rawImage.texture = tensorTexture;
             outputTensor1?.Dispose();
             outputTensor2?.Dispose();
         }
@@ -135,6 +136,42 @@ public class NeuralNetwork : MonoBehaviour
 
         newImage.Apply();
         return newImage;
+    }
+
+    Texture2D processDepthData(ushort[] depthData, int xCut1, int xCut2, int zCut1, int zCut2)
+    {
+        int width = 512-xCut1-xCut2;
+        int height = 424-zCut1-zCut2;
+        Texture2D tex = new Texture2D(width, height, TextureFormat.RGB24, false);
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                float depth = Mathf.Clamp(depthData[x + xCut1 + (y + zCut1)*512] / 4500f, 0, 1);
+                tex.SetPixel(x, y, GetColor(depth));
+            }
+            
+        }
+        tex.Apply();
+        return tex;
+    }   
+
+    Color GetColor(float height)
+    {
+        if (height == 0)
+            return new Color(0, 0, 0);
+        Color[] colors = {new Color(1, 0, 0), new Color(1, 0.5f, 0), new Color(1, 1, 0), new Color(0, 1, 0), new Color(0, 0, 1)};
+        for (int i = 0; i < 4; i++)
+        {
+            float lowerBound = i / 4f;
+            float upperBound = lowerBound + 1f / 4f;
+            float step = upperBound - lowerBound;
+            if (height <= upperBound)
+                return Color.Lerp(colors[i], colors[i+1], (height-lowerBound)/step);
+        }
+        if (height > 1)
+            Debug.Log("error");
+        return new Color(0, 0, 1);
     }
 
 
