@@ -5,6 +5,7 @@ using System;
 
 public class NeuralNetwork : MonoBehaviour
 {
+    string[] labels = new string[] {"Open Hand", "Closed Hand"};
     public MultiSourceManager msm;
     public Texture2D inputTexture;
     ITensorAllocator allocator;
@@ -23,6 +24,8 @@ public class NeuralNetwork : MonoBehaviour
     float[] bilde;
     ushort[] kinectDepth;
     Texture2D kinectColor;
+    int number = 0;
+    bool run = false;
 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -46,52 +49,82 @@ public class NeuralNetwork : MonoBehaviour
         kinectDepth = msm.GetDepthData();
         kinectColor = processDepthData(kinectDepth, 124, 88, 19, 5);
         //rawImage.texture = kinectColor;
-        if (Input.GetMouseButtonDown(0))
+        //if (Input.GetMouseButtonDown(0))
+        //{
+        scaledTexture = Bilinear(kinectColor, 240, 240);
+        byte[] bytes1 = scaledTexture.EncodeToJPG();
+        Texture2D texture = new Texture2D(240, 240);
+        texture.LoadImage(bytes1);
+        for (int y = 0; y < 240; y++)
         {
-            scaledTexture = Bilinear(kinectColor, 240, 240);
-            for (int y = 0; y < 240; y++)
+            for (int x = 0; x < 240; x++)
             {
-                for (int x = 0; x < 240; x++)
-                {
-                    bilde[x*3 + y*240*3] = scaledTexture.GetPixel(x, 239-y).r;
-                    bilde[x*3+1 + y*240*3] = scaledTexture.GetPixel(x, 239-y).g;
-                    bilde[x*3+2 + y*240*3] = scaledTexture.GetPixel(x, 239-y).b;
-                }
+                bilde[x*3 + y*240*3] = texture.GetPixel(x, 239-y).r;
+                bilde[x*3+1 + y*240*3] = texture.GetPixel(x, 239-y).g;
+                bilde[x*3+2 + y*240*3] = texture.GetPixel(x, 239-y).b;
             }
-            TensorShape shape = new TensorShape(1, 240, 240, 3);
-            inputTensor = new TensorFloat(shape, bilde);
-            inputTensor = ops.Mul(inputTensor, 255.0f);
-            worker1.Execute(inputTensor);
-            TensorFloat outputTensor1 = worker1.PeekOutput() as TensorFloat;
-            var coordinates = outputTensor1;
-            coordinates.MakeReadable();
-            var x_cord = coordinates[0];
-            var y_cord = coordinates[1];
-            Debug.Log($"x: {x_cord}, y: {y_cord}");
-            inputTensor.MakeReadable();
-            worker2.Execute(inputTensor);
-            TensorFloat outputTensor2 = worker2.PeekOutput() as TensorFloat;
-            var probabilities = outputTensor2;
-            var indexOfMaxProba = ops.ArgMax(probabilities, -1, false);
-            probabilities.MakeReadable();
-            indexOfMaxProba.MakeReadable();
-            var predictedNumber = indexOfMaxProba[0];
-            var probability = probabilities[predictedNumber];
-            Debug.Log($"Predicted number: {predictedNumber} with probability: {probability}");
-            inputTensor.MakeReadable();
-            for (int y = 0; y < 240; y++)
-            {
-                for (int x = 0; x < 240; x++)
-                {
-                    //print("r:" + inputTensor[0, 0, i, j] + " g:" + inputTensor[0, 1, i, j] + " b:" + inputTensor[0, 2, i, j]);
-                    tensorTexture.SetPixel(x, 239-y, new Color(inputTensor[0, y, x, 0]/255f, inputTensor[0, y, x, 1]/255f, inputTensor[0, y, x, 2]/255f));
-                }
-            }
-            tensorTexture.Apply();
-            rawImage.texture = tensorTexture;
-            outputTensor1?.Dispose();
-            outputTensor2?.Dispose();
         }
+        TensorShape shape = new TensorShape(1, 240, 240, 3);
+        inputTensor = new TensorFloat(shape, bilde);
+        inputTensor = ops.Mul(inputTensor, 255.0f);
+        worker1.Execute(inputTensor);
+        TensorFloat outputTensor1 = worker1.PeekOutput() as TensorFloat;
+        var coordinates = outputTensor1;
+        coordinates.MakeReadable();
+        var x_cord = coordinates[0];
+        var y_cord = coordinates[1];
+        Debug.Log($"x: {x_cord}, y: {y_cord}");
+        inputTensor.MakeReadable();
+        worker2.Execute(inputTensor);
+        TensorFloat outputTensor2 = worker2.PeekOutput() as TensorFloat;
+        var probabilities = outputTensor2;
+        var indexOfMaxProba = ops.ArgMax(probabilities, -1, false);
+        probabilities.MakeReadable();
+        indexOfMaxProba.MakeReadable();
+        var predictedNumber = indexOfMaxProba[0];
+        var probability = probabilities[predictedNumber];
+        Debug.Log($"Predicted label: {labels[predictedNumber]} with probability: {probability}");
+        inputTensor.MakeReadable();
+        for (int y = 0; y < 240; y++)
+        {
+            for (int x = 0; x < 240; x++)
+            {
+                //print("r:" + inputTensor[0, 0, i, j] + " g:" + inputTensor[0, 1, i, j] + " b:" + inputTensor[0, 2, i, j]);
+                tensorTexture.SetPixel(x, 239-y, new Color(inputTensor[0, y, x, 0]/255f, inputTensor[0, y, x, 1]/255f, inputTensor[0, y, x, 2]/255f));
+            }
+        }
+        tensorTexture.SetPixel((int)x_cord, 240-(int)y_cord, new Color(0, 1, 0));
+        tensorTexture.SetPixel((int)x_cord+1, 240-(int)y_cord, new Color(0, 1, 0));
+        tensorTexture.SetPixel((int)x_cord-1, 240-(int)y_cord, new Color(0, 1, 0));
+        tensorTexture.SetPixel((int)x_cord, 240-(int)y_cord+1, new Color(0, 1, 0));
+        tensorTexture.SetPixel((int)x_cord, 240-(int)y_cord-1, new Color(0, 1, 0));
+        tensorTexture.Apply();
+        rawImage.texture = tensorTexture;
+        outputTensor1?.Dispose();
+        outputTensor2?.Dispose();
+        //}
+
+        // if (Input.GetMouseButtonDown(0))
+        // {
+            //save tensorTexture as png
+        // if (Input.GetMouseButtonDown(0))
+        // {
+        //     run = true;
+        // }
+        // if (!run)
+        // {
+        //     return;
+        // }
+        // if (number > 199)
+        // {
+        //     Debug.Log("Done");
+        //     return;
+        // }
+        // byte[] bytes = scaledTexture.EncodeToPNG();
+        // System.IO.File.WriteAllBytes("C:/Users/mkf99/AR_Sandbox/NeuralNetwork/Data/PNG/ClosedHand" + $"/{number}.png", bytes);
+        // number+=1;
+        // Debug.Log("Saved");
+        //}
     }
 
     void OnDestroy()
@@ -105,7 +138,7 @@ public class NeuralNetwork : MonoBehaviour
 
     Texture2D Bilinear(Texture2D origImage, int newWidth, int newHeight)
     {
-        Texture2D newImage = new Texture2D(newWidth, newHeight);
+        Texture2D newImage = new Texture2D(newWidth, newHeight, TextureFormat.RGB24, false);
 
         for (int i = 0; i < newHeight; i++)
         {
@@ -173,7 +206,6 @@ public class NeuralNetwork : MonoBehaviour
             Debug.Log("error");
         return new Color(0, 0, 1);
     }
-
 
 }
 
