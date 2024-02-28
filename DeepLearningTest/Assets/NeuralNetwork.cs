@@ -52,16 +52,16 @@ public class NeuralNetwork : MonoBehaviour
         //if (Input.GetMouseButtonDown(0))
         //{
         scaledTexture = Bilinear(kinectColor, 240, 240);
-        byte[] bytes1 = scaledTexture.EncodeToJPG();
-        Texture2D texture = new Texture2D(240, 240);
-        texture.LoadImage(bytes1);
+        // byte[] bytes1 = scaledTexture.EncodeToJPG();
+        // Texture2D texture = new Texture2D(240, 240);
+        // texture.LoadImage(bytes1);
         for (int y = 0; y < 240; y++)
         {
             for (int x = 0; x < 240; x++)
             {
-                bilde[x*3 + y*240*3] = texture.GetPixel(x, 239-y).r;
-                bilde[x*3+1 + y*240*3] = texture.GetPixel(x, 239-y).g;
-                bilde[x*3+2 + y*240*3] = texture.GetPixel(x, 239-y).b;
+                bilde[x*3 + y*240*3] = scaledTexture.GetPixel(x, 239-y).r;
+                bilde[x*3+1 + y*240*3] = scaledTexture.GetPixel(x, 239-y).g;
+                bilde[x*3+2 + y*240*3] = scaledTexture.GetPixel(x, 239-y).b;
             }
         }
         TensorShape shape = new TensorShape(1, 240, 240, 3);
