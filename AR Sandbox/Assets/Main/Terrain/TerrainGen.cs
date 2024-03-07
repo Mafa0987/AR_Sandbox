@@ -10,10 +10,6 @@ using Random=UnityEngine.Random;
 [RequireComponent(typeof(MeshFilter))]
 public class TerrainGen : MonoBehaviour
 {
-    int number = 0;
-    bool run = false;
-    float timerImage = 0;
-    int numImages = 0;
     Calibration calibration;
     public Material material;
     public GameObject terrainpos;
@@ -104,7 +100,7 @@ public class TerrainGen : MonoBehaviour
     void CreateShapeGPU()
     {
         //CreateHeightmap();
-        heightmap_short = msm.GetDepthData();
+        //heightmap_short = msm.GetDepthData();
         oldBuffer.SetData(heightmap_short);
         //Converts Heightmap to integer
         computeShader.Dispatch(2, 512*424/2/64, 1, 1);
@@ -122,11 +118,8 @@ public class TerrainGen : MonoBehaviour
         computeShader.Dispatch(3, 512/8, 424/8, 1);
         heightBuffer.GetData(heightmap);
         heightmapRawBuffer.GetData(heightmapRaw);
-        //CaptureImages();
+
         //Rest of the calculations
-        // minTerrainHeight = minTerrainSlider.value;
-        // maxTerrainHeight = maxTerrainSlider.value;
-        // rainHeight = maxTerrainHeight + rainOffset;
         minTerrainHeight = calibration.minTerrainHeight;
         maxTerrainHeight = calibration.maxTerrainHeight;
         computeShader.SetFloat("maxTerrainHeight", maxTerrainHeight);
@@ -139,98 +132,9 @@ public class TerrainGen : MonoBehaviour
     }
     void UpdateMesh()
     {
-        // Calibrate();
         mesh.vertices = vertices;
         material.mainTexture = colors;
         //mesh.RecalculateNormals();
-    }
-
-    void CaptureImages()
-    {
-        if (Input.GetKeyDown("space") | run)
-        {
-            run = true;
-            if (timerImage >= 6)
-            {
-                SaveAsJpgColor();
-                SaveAsJpgGray();
-                number += 1;
-                Debug.Log("space was pressed");
-                timerImage = 0;
-                if (numImages >= 100){
-                    run = false;
-                    Debug.Log("images finished");
-                    numImages = 0;
-                }
-                else{
-                    numImages += 1;
-                }
-            }
-            else
-            {
-                timerImage += 1;
-            }
-        }
-    }
-
-    void SaveAsJpgColor()
-    {
-        Texture2D tex = new Texture2D(xSize, zSize, TextureFormat.RGB24, false);
-        int x = 0;
-        int y = 0;
-        for (int i = 0; i < heightmapRaw.Length; i++)
-        {
-            float height = Mathf.Clamp(heightmapRaw[i] / 4500, 0, 1);
-            tex.SetPixel(x, y, GetColor(height));
-            x++;
-            if (x >= xSize)
-            {
-                x = 0;
-                y++;
-            }
-        }
-        //tex.Apply();
-        byte[] bytes = tex.EncodeToJPG();
-        System.IO.File.WriteAllBytes("C:/Users/mkf99/HandTracking/FistColor/" + number + ".jpg", bytes);
-    }
-
-    void SaveAsJpgGray()
-    {
-        Texture2D tex = new Texture2D(xSize, zSize, TextureFormat.RGB24, false);
-        int x = 0;
-        int y = 0;
-        for (int i = 0; i < heightmapRaw.Length; i++)
-        {
-            float height = Mathf.Clamp(heightmapRaw[i] / 4500, 0, 1);
-            tex.SetPixel(x, y, new Color(height, height, height));
-            x++;
-            if (x >= xSize)
-            {
-                x = 0;
-                y++;
-            }
-        }
-        //tex.Apply();
-        byte[] bytes = tex.EncodeToJPG();
-        System.IO.File.WriteAllBytes("C:/Users/mkf99/HandTracking/FistGray/" + number + ".jpg", bytes);
-    }
-
-    Color GetColor(float height)
-    {
-        if (height == 0)
-            return new Color(0, 0, 0);
-        Color[] colors = {new Color(1, 0, 0), new Color(1, 0.5f, 0), new Color(1, 1, 0), new Color(0, 1, 0), new Color(0, 0, 1)};
-        for (int i = 0; i < 4; i++)
-        {
-            float lowerBound = i / 4f;
-            float upperBound = lowerBound + 1f / 4f;
-            float step = upperBound - lowerBound;
-            if (height <= upperBound)
-                return Color.Lerp(colors[i], colors[i+1], (height-lowerBound)/step);
-        }
-        if (height > 1)
-            Debug.Log("error");
-        return new Color(0, 0, 1);
     }
 
     void InitShader()
@@ -310,19 +214,19 @@ public class TerrainGen : MonoBehaviour
         heightmap_short = new ushort[originalWidth * originalHeight];
         heightmapRaw = new float[xSize * zSize];
         heightmap = new float[xSize * zSize];
-        // for (int i = 0, z = 0; z < originalHeight; z++)
-        // {
-        //     for (int x = 0; x < originalWidth; x++)
-        //     {
-        //         ushort y =
-        //             (ushort)((amplitude1 * Mathf.PerlinNoise(x * frequency1,z * frequency1)
-        //             + amplitude2 * Mathf.PerlinNoise(x * frequency2, z * frequency2)
-        //             + amplitude3 * Mathf.PerlinNoise(x * frequency3, z * frequency3)
-        //                 * noiseStrength)*300*4/25/2);
-        //         heightmap_short[i] = y;
-        //         i++;
-        //     }
-        // }
+        for (int i = 0, z = 0; z < originalHeight; z++)
+        {
+            for (int x = 0; x < originalWidth; x++)
+            {
+                ushort y =
+                    (ushort)((amplitude1 * Mathf.PerlinNoise(x * frequency1,z * frequency1)
+                    + amplitude2 * Mathf.PerlinNoise(x * frequency2, z * frequency2)
+                    + amplitude3 * Mathf.PerlinNoise(x * frequency3, z * frequency3)
+                        * noiseStrength)*300*4/25/2);
+                heightmap_short[i] = y;
+                i++;
+            }
+        }
     }
 
     void CreateUV()
@@ -360,95 +264,4 @@ public class TerrainGen : MonoBehaviour
         averageBuffer.Release();
         sampleSums.Release();
     }
-
-    // void Calibrate()
-    // {
-    //     float dt = Time.deltaTime;
-    //     float speed = 20f * dt;
-    //     float scaleSpeed = 0.1f * dt;
-    //     float rotateSpeed = 5f * dt;
-
-    //     if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.UpArrow))
-    //     {
-    //         terrainpos.transform.localScale += new Vector3(0, 0, scaleSpeed);
-    //         waterpos.transform.localScale += new Vector3(0, 0, scaleSpeed);
-    //     }
-    //     else if (Input.GetKey(KeyCode.UpArrow))
-    //     {
-    //         terrainpos.transform.position += new Vector3(0, 0, speed);
-    //         waterpos.transform.position += new Vector3(0, 0, speed);
-    //     }
-
-    //     if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.DownArrow))
-    //     {
-    //         terrainpos.transform.localScale += new Vector3(0, 0, -scaleSpeed);
-    //         waterpos.transform.localScale += new Vector3(0, 0, -scaleSpeed);
-    //     }
-    //     else if (Input.GetKey(KeyCode.DownArrow))
-    //     {
-    //         terrainpos.transform.position += new Vector3(0, 0, -speed);
-    //         waterpos.transform.position += new Vector3(0, 0, -speed);
-    //     }
-
-    //     if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.RightArrow))
-    //     {
-    //         terrainpos.transform.localScale += new Vector3(scaleSpeed, 0, 0);
-    //         waterpos.transform.localScale += new Vector3(scaleSpeed, 0, 0);
-    //     }
-    //     else if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.RightArrow))
-    //     {
-    //         terrainpos.transform.rotation *= Quaternion.Euler(0, rotateSpeed, 0);
-    //         waterpos.transform.rotation *= Quaternion.Euler(0, rotateSpeed, 0);
-    //     }
-    //     else if (Input.GetKey(KeyCode.RightArrow))
-    //     {
-    //         terrainpos.transform.position += new Vector3(speed, 0, 0);
-    //         waterpos.transform.position += new Vector3(speed, 0, 0);
-    //     }
-
-    //     if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.LeftArrow))
-    //     {
-    //         terrainpos.transform.localScale += new Vector3(-scaleSpeed, 0, 0);
-    //         waterpos.transform.localScale += new Vector3(-scaleSpeed, 0, 0);
-    //     }
-    //     else if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.LeftArrow))
-    //     {
-    //         terrainpos.transform.rotation *= Quaternion.Euler(0, -rotateSpeed, 0);
-    //         waterpos.transform.rotation *= Quaternion.Euler(0, -rotateSpeed, 0);
-    //     }
-    //     else if (Input.GetKey(KeyCode.LeftArrow))
-    //     {
-    //         terrainpos.transform.position += new Vector3(-speed, 0, 0);
-    //         waterpos.transform.position += new Vector3(-speed, 0, 0);
-    //     }
-
-    //     if (Input.GetKey(KeyCode.O))
-    //     {
-    //         maxTerrainHeight += 100f * dt;
-    //         rainHeight = maxTerrainHeight + rainOffset;
-    //     }
-    //     else if (Input.GetKey(KeyCode.L))
-    //     {
-    //         maxTerrainHeight -= 100f * dt;
-    //         rainHeight = maxTerrainHeight + rainOffset;
-    //     }
-    //     if (Input.GetKey(KeyCode.I))
-    //     {
-    //         minTerrainHeight += 100f * dt;
-    //     }
-    //     else if (Input.GetKey(KeyCode.K))
-    //     {
-    //         minTerrainHeight -= 100f * dt;
-    //     }
-    //     if (Input.GetKey(KeyCode.U))
-    //     {
-    //         rainOffset += 100f * dt;
-    //         rainHeight = maxTerrainHeight + rainOffset;
-    //     }
-    //     else if (Input.GetKey(KeyCode.J))
-    //     {
-    //         rainOffset -= 100f * dt;
-    //         rainHeight = maxTerrainHeight + rainOffset;
-    //     }
-    // }
 }
