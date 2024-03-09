@@ -536,11 +536,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e668ce330373a594e8be278d41821f12, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  BilTest: {fileID: 2800000, guid: ce252048926ee9f46bdb1071d8ca2b88, type: 3}
+  bilOut: {fileID: 0}
   msm: {fileID: 294313432}
   inputTexture: {fileID: 2800000, guid: ce252048926ee9f46bdb1071d8ca2b88, type: 3}
   modelAsset1: {fileID: 5022602860645237092, guid: d184434a56d3d0648a3ef5dd8e409886, type: 3}
   modelAsset2: {fileID: 5022602860645237092, guid: 02ca0a432a5727947aca918130950c84, type: 3}
   rawImage: {fileID: 488982666}
+  computeShader: {fileID: 7200000, guid: d34eb03b8937ef3428f6f88565aeea87, type: 3}
 --- !u!1 &1686628553
 GameObject:
   m_ObjectHideFlags: 0

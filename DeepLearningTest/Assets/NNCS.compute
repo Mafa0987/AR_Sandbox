@@ -3,13 +3,58 @@
 
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture
-Texture2D<float4> input;
+RWStructuredBuffer<uint> depthDataShort;
+RWStructuredBuffer<uint> depthData;
+RWStructuredBuffer<float> input;
 RWStructuredBuffer<float> output;
-RWStructuredBuffer<float> input2;
 float ratioX;
 float ratioY;
 int inputDimX;
 int inputDimY;
+int threadsize;
+int xCut1;
+int zCut1;
+int depthWidth;
+int depthHeight;
+
+static float3 colorsArray[] = {float3(1, 0, 0), float3(1, 0.5, 0), float3(1, 1, 0), float3(0, 1, 0), float3(0, 0, 1)};
+
+float3 GetColor(float height)
+{
+    if (height == 0)
+        return float3(0, 0, 0);
+    for (int i = 0; i < 4; i++)
+    {
+        float lowerBound = i / 4.0;
+        float upperBound = lowerBound + 1.0 / 4.0;
+        float step = upperBound - lowerBound;
+        if (height <= upperBound)
+            return lerp(colorsArray[i], colorsArray[i+1], (height-lowerBound)/step);
+    }
+    return float3(0, 0, 1);
+}
+
+[numthreads(64,1,1)]
+void ShortToInt (uint3 id : SV_DispatchThreadID)
+{
+    uint num = depthDataShort[id.x];
+    uint first = num & 0x0000FFFF;
+    uint sec = (num & 0xFFFF0000) >> 16;
+    depthData[id.x*2] = first;
+    depthData[id.x*2+1] = sec;
+}
+
+// Color mapping
+[numthreads(8,8,1)]
+void ColorMapping (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= depthWidth || id.y >= depthHeight)
+        return;
+    float depth = clamp(depthData[id.x + xCut1 + (id.y + zCut1)*512] / 4500f, 0, 1);
+    input[id.x*3 + id.y*3*depthWidth] = GetColor(depth).x;
+    input[id.x*3 + id.y*3*depthWidth + 1] = GetColor(depth).y;
+    input[id.x*3 + id.y*3*depthWidth + 2] = GetColor(depth).z;
+}
 
 // Bilinear Interpolation
 [numthreads(8,8,1)]
@@ -23,21 +68,21 @@ void Bilinear (uint3 id : SV_DispatchThreadID)
     int x2 = min(x1 + 1, inputDimX - 1);
     int y2 = min(y1 + 1, inputDimY - 1);
     float4 c00;
-    c00.r = input2[x1*3 + y1*3*inputDimX];
-    c00.g = input2[x1*3 + y1*3*inputDimX + 1];
-    c00.b = input2[x1*3 + y1*3*inputDimX + 2];
+    c00.r = input[x1*3 + y1*3*inputDimX];
+    c00.g = input[x1*3 + y1*3*inputDimX + 1];
+    c00.b = input[x1*3 + y1*3*inputDimX + 2];
     float4 c10;
-    c10.r = input2[x2*3 + y1*3*inputDimX];
-    c10.g = input2[x2*3 + y1*3*inputDimX + 1];
-    c10.b = input2[x2*3 + y1*3*inputDimX + 2];
+    c10.r = input[x2*3 + y1*3*inputDimX];
+    c10.g = input[x2*3 + y1*3*inputDimX + 1];
+    c10.b = input[x2*3 + y1*3*inputDimX + 2];
     float4 c01;
-    c01.r = input2[x1*3 + y2*3*inputDimX];
-    c01.g = input2[x1*3 + y2*3*inputDimX + 1];
-    c01.b = input2[x1*3 + y2*3*inputDimX + 2];
+    c01.r = input[x1*3 + y2*3*inputDimX];
+    c01.g = input[x1*3 + y2*3*inputDimX + 1];
+    c01.b = input[x1*3 + y2*3*inputDimX + 2];
     float4 c11;
-    c11.r = input2[x2*3 + y2*3*inputDimX];
-    c11.g = input2[x2*3 + y2*3*inputDimX + 1];
-    c11.b = input2[x2*3 + y2*3*inputDimX + 2];
+    c11.r = input[x2*3 + y2*3*inputDimX];
+    c11.g = input[x2*3 + y2*3*inputDimX + 1];
+    c11.b = input[x2*3 + y2*3*inputDimX + 2];
     float4 c0 = lerp(c00, c10, x - x1);
     float4 c1 = lerp(c01, c11, x - x1);
     float4 colorOut = lerp(c0, c1, y - y1);
