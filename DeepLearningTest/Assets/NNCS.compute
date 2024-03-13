@@ -1,5 +1,8 @@
 // Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel ShortToInt
+#pragma kernel ColorMapping
 #pragma kernel Bilinear
+#pragma kernel makeTexture
 
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture
@@ -12,10 +15,12 @@ float ratioY;
 int inputDimX;
 int inputDimY;
 int threadsize;
-int xCut1;
-int zCut1;
-int depthWidth;
-int depthHeight;
+int xCutL;
+int zCutB;
+int handX;
+int handY;
+
+RWTexture2D<float4> outputTexture;
 
 static float3 colorsArray[] = {float3(1, 0, 0), float3(1, 0.5, 0), float3(1, 1, 0), float3(0, 1, 0), float3(0, 0, 1)};
 
@@ -48,12 +53,12 @@ void ShortToInt (uint3 id : SV_DispatchThreadID)
 [numthreads(8,8,1)]
 void ColorMapping (uint3 id : SV_DispatchThreadID)
 {
-    if (id.x >= depthWidth || id.y >= depthHeight)
+    if (id.x >= inputDimX || id.y >= inputDimY)
         return;
-    float depth = clamp(depthData[id.x + xCut1 + (id.y + zCut1)*512] / 4500f, 0, 1);
-    input[id.x*3 + id.y*3*depthWidth] = GetColor(depth).x;
-    input[id.x*3 + id.y*3*depthWidth + 1] = GetColor(depth).y;
-    input[id.x*3 + id.y*3*depthWidth + 2] = GetColor(depth).z;
+    float depth = clamp(depthData[id.x + xCutL + (id.y + zCutB)*512] / 4500.0, 0, 1);
+    input[id.x*3 + id.y*3*inputDimX] = GetColor(depth).x;
+    input[id.x*3 + id.y*3*inputDimX + 1] = GetColor(depth).y;
+    input[id.x*3 + id.y*3*inputDimX + 2] = GetColor(depth).z;
 }
 
 // Bilinear Interpolation
@@ -89,4 +94,17 @@ void Bilinear (uint3 id : SV_DispatchThreadID)
     output[index] = colorOut.r;
     output[index + 1] = colorOut.g;
     output[index + 2] = colorOut.b;
+}
+[numthreads(8,8,1)]
+void makeTexture (uint3 id : SV_DispatchThreadID)
+{
+    int index = id.x * 3 + id.y * 3 * 300;
+    if (id.x == handX && id.y == handY)
+    {
+        outputTexture[id.xy] = float4(0, 1, 0, 1);
+    }
+    else
+    {
+        outputTexture[id.xy] = float4(input[index], input[index + 1], input[index + 2], 1);
+    }
 }
