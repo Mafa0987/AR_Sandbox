@@ -1,0 +1,286 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+#pragma kernel CSContour
+#pragma kernel ShortToInt
+#pragma kernel HMProcessing
+
+#define norm(height) ((height-minTerrainHeight)/(maxTerrainHeight-minTerrainHeight))
+
+RWStructuredBuffer<float3> vertices;
+RWStructuredBuffer<float> heightmap;
+RWStructuredBuffer<float> heightmapRaw;
+RWTexture2D<float4> colors;
+
+RWStructuredBuffer<uint> old;
+RWStructuredBuffer<uint> ny;
+RWStructuredBuffer<uint> average;
+RWStructuredBuffer<uint> sampleSums;
+int N;
+int num_arrays;
+int sampleIndex;
+
+// static float4 Blue = float4(0, 0, 1, 1);
+// static float4 Green = float4(0.25, 0.5, 0.25, 1);
+// static float4 Beige = float4(1, 0.25, 0, 1);
+// static float4 Red = float4(0.5, 0, 0, 1);
+// static float4 White = float4(1, 1, 1, 1);
+
+// static float4 colorsArray[] = {
+//     Blue,
+//     Green,
+//     Beige,
+//     Red,
+//     White
+// };
+
+static float4 DarkerBlue = float4(0, 0, 0.3137, 1);
+static float4 DarkBlue = float4(0, 0.1176, 0.3922, 1);
+static float4 Blue = float4(0, 0.1961, 0.4, 1);
+static float4 LightBlue = float4(0.0745, 0.4235, 0.6275, 1);
+static float4 SkyBlue = float4(0.0941, 0.5490, 0.8039, 1);
+static float4 LightSkyBlue = float4(0.5294, 0.8078, 0.9804, 1);
+static float4 VeryLightSkyBlue = float4(0.6902, 0.8863, 1, 1);
+static float4 DarkGreen = float4(0, 0.3804, 0.2784, 1);
+static float4 Green = float4(0.0627, 0.4784, 0.1843, 1);
+static float4 PaleYellow = float4(0.9098, 0.8431, 0.4902, 1);
+static float4 Brown = float4(0.6314, 0.2627, 0, 1);
+static float4 DarkRed = float4(0.5098, 0.1176, 0.1176, 1);
+static float4 Grey = float4(0.6314, 0.6314, 0.6314, 1);
+static float4 LightGrey = float4(0.8078, 0.8078, 0.8078, 1);
+static float4 White = float4(1, 1, 1, 1);
+
+static float4 colorsArray[] = {DarkerBlue, DarkBlue, Blue, LightBlue, SkyBlue, LightSkyBlue, VeryLightSkyBlue, DarkGreen, Green, PaleYellow, Brown, DarkRed, Grey, LightGrey, White};
+
+static float lowerBounds[] = {0.0f, 0.1111f, 0.1667f, 0.2889f, 0.3778f,0.4444f, 0.4778f, 0.5f, 0.5222f, 0.6222f, 0.7111f, 0.7556f, 0.9f, 0.95f, 1.0f};
+
+float maxTerrainHeight;
+float minTerrainHeight;
+
+int xSize;
+int zSize;
+int originalWidth;
+int originalHeight;
+int xCut;
+int zCut;
+
+float4 GetColor(float height)
+{
+    for (int i = 0; i < 14; i++)
+    {
+        float lowerBound = lowerBounds[i];
+        float upperBound = lowerBounds[i+1];
+        float step = upperBound - lowerBound;
+        if (height <= upperBound)
+            return lerp(colorsArray[i], colorsArray[i+1], (height-lowerBound)/step);
+    }
+    return White;
+}
+
+void ColorSquare(uint2 idxy, int size, float4 color)
+{
+    for (int i = 0; i < size; i++)
+    {
+        for (int j = 0; j < size; j++)
+            colors[uint2(idxy.x + i, idxy.y + j)] = color;
+    }
+}
+
+[numthreads(64,1,1)]
+void ShortToInt (uint3 id : SV_DispatchThreadID)
+{
+    uint num = old[id.x];
+    uint first = num & 0x0000FFFF;
+    uint sec = (num & 0xFFFF0000) >> 16;
+    ny[id.x*2] = first;
+    ny[id.x*2+1] = sec;
+    
+    //add frame to average buffer
+    int i_step = id.x * 2;
+    int oldSample1 = average[i_step + sampleIndex * N];
+    int oldSample2 = average[i_step + 1 + sampleIndex * N];
+    average[i_step + sampleIndex * N] = first;
+    average[i_step + 1 + sampleIndex * N] = sec;
+    sampleSums[i_step] += first - oldSample1;
+    sampleSums[i_step + 1] += sec - oldSample2;
+}
+
+[numthreads(8,8,1)]
+void HMProcessing (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= xSize || id.y >= zSize)
+        return;
+    int originalIndex = (id.x + xCut) + (id.y + zCut) * originalWidth;
+    int resizedIndex = id.x + id.y * xSize;
+
+    float height = (float)sampleSums[originalIndex] / (float)num_arrays;
+    height = (2000.0 - height)/2.0;
+
+    heightmapRaw[resizedIndex] = (float)ny[originalIndex];
+    if (abs(height-heightmap[resizedIndex])>=1.0)
+        heightmap[resizedIndex] = height;
+}
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= xSize || id.y >= zSize)
+        return;
+
+    int vert = id.x+id.y*(xSize);
+    float height = heightmap[vert];
+    vertices[vert] = float3(id.x, height, id.y);
+
+    float height_norm = norm(height);
+
+    //colors[id.xy] = GetColor(height);
+    ColorSquare(id.xy*4, 4, GetColor(height_norm));
+}
+
+int CheckHeight(float height, float limit)
+{
+    if(height > limit){
+        return 1;
+    }
+    else{
+        return 0;
+    }
+}
+
+int GetState(int a, int b, int c, int d)
+{
+    return a * 8 + b * 4 + c * 2 + d * 1;
+}
+
+void DrawPixel(int x, int y, RWTexture2D<float4> colors)
+{
+    for (int i = 0; i < 2; i++)
+    {
+        for (int j = 0; j < 2; j++)
+        {
+            int x_c = x + j;
+            int y_c = y + i;
+            if (x_c >= 0 && x_c < xSize*4 && y_c >= 0 && y_c < zSize*4)
+            {
+                colors[uint2(x_c, y_c)] = float4(0, 0, 0, 1);
+            }
+        }
+    }
+}
+
+void DrawLine(float x1, float y1, float x2, float y2, RWTexture2D<float4> colors)
+{
+    x1 = round(x1);
+    y1 = round(y1);
+    x2 = round(x2);
+    y2 = round(y2);
+    int x_diff = x2 - x1;
+    int y_diff = y2 - y1;
+    int steps = max(abs(x_diff), abs(y_diff));
+    if (steps == 0)
+        return;
+    float xstep = (float)x_diff / (float)steps;
+    float ystep = (float)y_diff/ (float)steps;
+    float x = (float)x1;
+    float y = (float)y1;
+    for (int i = 0; i <= steps; i++)
+    {
+        //colors[uint2(round(x), round(y))] = float4(0, 0, 0, 1);
+        DrawPixel(round(x), round(y), colors);
+        x += xstep;
+        y += ystep;
+    }
+}
+
+void DrawContour(float limit, RWStructuredBuffer<float3> vertices, float maxTerrainHeight, float minTerrainHeight, RWTexture2D<float4> colors, int idx, int idy)
+{
+    int state;
+    int hrez = 4;
+    int crez = 16;
+
+    float a_val = norm(vertices[idx * hrez + idy * hrez * xSize].y);
+    float b_val = norm(vertices[idx * hrez + hrez + idy * hrez * xSize].y);
+    float c_val = norm(vertices[idx * hrez + hrez + (idy * hrez + hrez) * xSize].y);
+    float d_val = norm(vertices[idx * hrez + (idy * hrez + hrez) * xSize].y);
+
+    float amt = (limit - a_val) / (b_val - a_val);
+    float2 a = float2(lerp(idx*crez, idx*crez+crez, amt), idy * crez);
+    amt = (limit - b_val) / (c_val - b_val);
+    float2 b = float2(idx * crez + crez, lerp(idy*crez, idy*crez+crez, amt));
+    amt = (limit - d_val) / (c_val - d_val);
+    float2 c = float2(lerp(idx*crez, idx*crez+crez, amt), idy * crez + crez);
+    amt = (limit - a_val) / (d_val - a_val);
+    float2 d = float2(idx * crez, lerp(idy*crez, idy*crez+crez, amt));
+
+    state = GetState(CheckHeight(a_val, limit), 
+    CheckHeight(b_val, limit), 
+    CheckHeight(c_val, limit), 
+    CheckHeight(d_val, limit));
+    [branch] switch(state)
+    {
+        case 1:
+            DrawLine(c.x, c.y, d.x, d.y, colors);
+            break;
+        case 2:
+            DrawLine(b.x, b.y, c.x, c.y, colors);
+            break;
+        case 3:
+            DrawLine(b.x, b.y, d.x, d.y, colors);
+            break;
+        case 4:
+            DrawLine(a.x, a.y, b.x, b.y, colors);
+            break;
+        case 5:
+            DrawLine(a.x, a.y, d.x, d.y, colors);
+            DrawLine(b.x, b.y, c.x, c.y, colors);
+            break;
+        case 6:
+            DrawLine(a.x, a.y, c.x, c.y, colors);
+            break;
+        case 7:
+            DrawLine(a.x, a.y, d.x, d.y, colors);
+            break;
+        case 8:
+            DrawLine(a.x, a.y, d.x, d.y, colors);
+            break;
+        case 9:
+            DrawLine(a.x, a.y, c.x, c.y, colors);
+            break;
+        case 10:
+            DrawLine(a.x, a.y, b.x, b.y, colors);
+            DrawLine(c.x, c.y, d.x, d.y, colors);
+            break;
+        case 11:
+            DrawLine(a.x, a.y, b.x, b.y, colors);
+            break;
+        case 12:
+            DrawLine(b.x, b.y, d.x, d.y, colors);
+            break;
+        case 13:
+            DrawLine(b.x, b.y, c.x, c.y, colors);
+            break;
+        case 14:
+            DrawLine(d.x, d.y, c.x, c.y, colors);
+            break;
+    }
+}
+
+[numthreads(8,7,1)]
+void CSContour (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x > floor((xSize-1)/4-1) || id.y > floor(zSize-1)/4-1)
+        return;
+
+    for(int i = 0; i < 21; i++)
+    {
+        DrawContour((float)i/20.0, vertices, maxTerrainHeight, minTerrainHeight, colors, id.x, id.y);
+    }
+}
+
+
+
+
+
+
+
+
+
