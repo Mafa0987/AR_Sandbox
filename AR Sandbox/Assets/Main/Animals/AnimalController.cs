@@ -20,7 +20,7 @@ public class AnimalController : MonoBehaviour
         }
         for (int i = 0; i < deer.Length; i++)
         {
-            deer[i].position = new Vector3(170, 1000, 200);
+            deer[i].position = new Vector3(170, 1000, 350);
         }
     }
 
