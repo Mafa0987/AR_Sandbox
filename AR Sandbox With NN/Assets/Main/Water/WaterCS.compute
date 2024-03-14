@@ -20,6 +20,8 @@ RWStructuredBuffer<float> depthMap;
 RWStructuredBuffer<float> heightmap;
 RWStructuredBuffer<float> heightmapRaw;
 RWTexture2D<float4> colors;
+int handPositionX;
+int handPositionY;
 
 
 [numthreads(8,8,1)]
@@ -28,10 +30,10 @@ void AddWater (uint3 id : SV_DispatchThreadID)
     if (id.x >= xSize || id.y >= zSize)
         return;
 
-    int vert = id.x + id.y * xSize;
-    if (heightmapRaw[vert] > rainHeight)
+    int index = id.x + id.y * xSize;
+    if ((id.x-handPositionX)*(id.x-handPositionX) + (id.y-handPositionY)*(id.y-handPositionY) < 2500)
     {
-        depthMap[vert] += 1 * dt;
+        depthMap[index] += 1 * dt;
     }
 }
 

@@ -76,22 +76,22 @@ public class NeuralNetwork : MonoBehaviour
     void Update()
     {
         kinectDepth = msm.GetDepthData();
-        depthDataShort.SetData(kinectDepth);
-        //kinectColor = processDepthData(kinectDepth, 124, 88, 19, 5);
-        //scaledTexture = Bilinear(kinectColor, 240, 240);
-        computeShader.Dispatch(0, 512*424/2/64, 1, 1);
-        computeShader.Dispatch(1, (int)Mathf.Ceil(300/8f), (int)Mathf.Ceil(400/8f), 1);
-        computeShader.Dispatch(2, 240/8, 240/8, 1);
-        output.GetData(outputArray);
-        // for (int y = 0; y < 240; y++)
-        // {
-        //     for (int x = 0; x < 240; x++)
-        //     {
-        //         bilde[x*3 + y*240*3] = scaledTexture.GetPixel(x, 239-y).r;
-        //         bilde[x*3+1 + y*240*3] = scaledTexture.GetPixel(x, 239-y).g;
-        //         bilde[x*3+2 + y*240*3] = scaledTexture.GetPixel(x, 239-y).b;
-        //     }
-        // }
+        //depthDataShort.SetData(kinectDepth);
+        kinectColor = processDepthData(kinectDepth, 124, 88, 19, 5);
+        scaledTexture = Bilinear(kinectColor, 240, 240);
+        // computeShader.Dispatch(0, 512*424/2/64, 1, 1);
+        // computeShader.Dispatch(1, (int)Mathf.Ceil(300/8f), (int)Mathf.Ceil(400/8f), 1);
+        // computeShader.Dispatch(2, 240/8, 240/8, 1);
+        // output.GetData(outputArray);
+        for (int y = 0; y < 240; y++)
+        {
+            for (int x = 0; x < 240; x++)
+            {
+                outputArray[x*3 + y*240*3] = scaledTexture.GetPixel(x, 239-y).r;
+                outputArray[x*3+1 + y*240*3] = scaledTexture.GetPixel(x, 239-y).g;
+                outputArray[x*3+2 + y*240*3] = scaledTexture.GetPixel(x, 239-y).b;
+            }
+        }
         TensorShape shape = new TensorShape(1, 240, 240, 3);
         inputTensor = new TensorFloat(shape, outputArray);
         inputTensor = ops.Mul(inputTensor, 255.0f);
@@ -116,22 +116,22 @@ public class NeuralNetwork : MonoBehaviour
         computeShader.SetInt("handX", (int)x_cord);
         computeShader.SetInt("handY", (int)y_cord);
         computeShader.Dispatch(3, 240/8, 240/8, 1);
-        // for (int y = 0; y < 240; y++)
-        // {
-        //     for (int x = 0; x < 240; x++)
-        //     {
-        //         tensorTexture.SetPixel(x, 239-y, new Color(inputTensor[0, y, x, 0]/255f, inputTensor[0, y, x, 1]/255f, inputTensor[0, y, x, 2]/255f));
-        //     }
-        // }
-        // tensorTexture.SetPixel((int)x_cord, 240-(int)y_cord, new Color(0, 1, 0));
-        // tensorTexture.SetPixel((int)x_cord+1, 240-(int)y_cord, new Color(0, 1, 0));
-        // tensorTexture.SetPixel((int)x_cord-1, 240-(int)y_cord, new Color(0, 1, 0));
-        // tensorTexture.SetPixel((int)x_cord, 240-(int)y_cord+1, new Color(0, 1, 0));
-        // tensorTexture.SetPixel((int)x_cord, 240-(int)y_cord-1, new Color(0, 1, 0));
-        // tensorTexture.Apply();
-        rawImage.texture = outputTexture;
-        // outputTensor1?.Dispose();
-        // outputTensor2?.Dispose();
+        for (int y = 0; y < 240; y++)
+        {
+            for (int x = 0; x < 240; x++)
+            {
+                tensorTexture.SetPixel(x, 239-y, new Color(inputTensor[0, y, x, 0]/255f, inputTensor[0, y, x, 1]/255f, inputTensor[0, y, x, 2]/255f));
+            }
+        }
+        tensorTexture.SetPixel((int)x_cord, 240-(int)y_cord, new Color(0, 1, 0));
+        tensorTexture.SetPixel((int)x_cord+1, 240-(int)y_cord, new Color(0, 1, 0));
+        tensorTexture.SetPixel((int)x_cord-1, 240-(int)y_cord, new Color(0, 1, 0));
+        tensorTexture.SetPixel((int)x_cord, 240-(int)y_cord+1, new Color(0, 1, 0));
+        tensorTexture.SetPixel((int)x_cord, 240-(int)y_cord-1, new Color(0, 1, 0));
+        tensorTexture.Apply();
+        rawImage.texture = tensorTexture;
+        outputTensor1?.Dispose();
+        outputTensor2?.Dispose();
     }
 
     void OnDestroy()

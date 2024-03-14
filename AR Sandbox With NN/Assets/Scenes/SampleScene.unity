@@ -2839,6 +2839,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b4654930f8d72e4192ccc7dc5fe75d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  nn: {fileID: 1313332448}
   waterMaterial: {fileID: 2100000, guid: 7f27445cdb995b348990cbfae378980b, type: 2}
   terrain: {fileID: 847163006}
   xSize: 512
@@ -2877,6 +2878,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   modelAsset1: {fileID: 5022602860645237092, guid: a4f71de284d4cb240b4a5c604354576a, type: 3}
   modelAsset2: {fileID: 5022602860645237092, guid: 0ca821b99854828499a52dabc6aa1bca, type: 3}
+  handPosition: {x: 0, y: 0}
+  predictedLabel: 
+  probability: 0
   msm: {fileID: 1617112940}
   inputTexture: {fileID: 0}
   outputTexture: {fileID: 0}

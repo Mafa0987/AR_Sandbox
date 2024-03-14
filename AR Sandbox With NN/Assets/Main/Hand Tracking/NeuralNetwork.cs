@@ -16,6 +16,9 @@ public class NeuralNetwork : MonoBehaviour
     IWorker worker2;
     TextureTransform transformLayout;
     TensorFloat inputTensor;
+    public Vector2Int handPosition;
+    public string predictedLabel;
+    public float probability;
 
     public MultiSourceManager msm;
     public Texture2D inputTexture;
@@ -101,6 +104,8 @@ public class NeuralNetwork : MonoBehaviour
         coordinates.MakeReadable();
         var x_cord = coordinates[0];
         var y_cord = coordinates[1];
+        //handPosition = new Vector2Int((int)(x_cord*300/240), (int)((399-y_cord)*400/240));
+        handPosition = new Vector2Int((int)(x_cord*300/240), (int)((240-y_cord)*400/240));
         Debug.Log($"x: {x_cord}, y: {y_cord}");
         inputTensor.MakeReadable();
         worker2.Execute(inputTensor);
@@ -110,7 +115,9 @@ public class NeuralNetwork : MonoBehaviour
         probabilities.MakeReadable();
         indexOfMaxProba.MakeReadable();
         var predictedNumber = indexOfMaxProba[0];
-        var probability = probabilities[predictedNumber];
+        probability = probabilities[predictedNumber];
+        predictedLabel = labels[predictedNumber];
+
         Debug.Log($"Predicted label: {labels[predictedNumber]} with probability: {probability}");
         inputTensor.MakeReadable();
         computeShader.SetInt("handX", (int)x_cord);
@@ -130,8 +137,8 @@ public class NeuralNetwork : MonoBehaviour
         // tensorTexture.SetPixel((int)x_cord, 240-(int)y_cord-1, new Color(0, 1, 0));
         // tensorTexture.Apply();
         rawImage.texture = outputTexture;
-        // outputTensor1?.Dispose();
-        // outputTensor2?.Dispose();
+        outputTensor1?.Dispose();
+        outputTensor2?.Dispose();
     }
 
     void OnDestroy()

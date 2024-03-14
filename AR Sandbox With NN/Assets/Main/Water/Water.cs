@@ -15,6 +15,7 @@ public class Water : MonoBehaviour
     Vector4[] fluxMap;
     RenderTexture colors;
     Vector2[] uvs;
+    public NeuralNetwork nn;
 
     bool clearWater = false;
 
@@ -92,8 +93,13 @@ public class Water : MonoBehaviour
         WaterCS.SetFloat("zSize", zSize);
         WaterCS.SetFloat("a", a);
         WaterCS.SetFloat("rainHeight", calibration.rainHeight);
-
-        WaterCS.Dispatch(4, 512/8, 424/8, 1);
+        WaterCS.SetInt("handPositionX", nn.handPosition.x);
+        WaterCS.SetInt("handPositionY", nn.handPosition.y);
+        
+        if (nn.predictedLabel == "Open Hand" && nn.probability > 0.9)
+        {
+            WaterCS.Dispatch(4, 512/8, 424/8, 1);
+        }
         WaterCS.Dispatch(0, 512/8, 424/8, 1);
         WaterCS.Dispatch(1, 512/8, 424/8, 1);
         verticesBuffer.GetData(vertices);

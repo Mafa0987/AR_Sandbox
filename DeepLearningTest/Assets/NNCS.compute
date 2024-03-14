@@ -56,9 +56,9 @@ void ColorMapping (uint3 id : SV_DispatchThreadID)
     if (id.x >= inputDimX || id.y >= inputDimY)
         return;
     float depth = clamp(depthData[id.x + xCutL + (id.y + zCutB)*512] / 4500.0, 0, 1);
-    input[id.x*3 + id.y*3*inputDimX] = GetColor(depth).x;
-    input[id.x*3 + id.y*3*inputDimX + 1] = GetColor(depth).y;
-    input[id.x*3 + id.y*3*inputDimX + 2] = GetColor(depth).z;
+    input[id.x*3 + (399-id.y)*3*inputDimX] = GetColor(depth).x;
+    input[id.x*3 + (399-id.y)*3*inputDimX + 1] = GetColor(depth).y;
+    input[id.x*3 + (399-id.y)*3*inputDimX + 2] = GetColor(depth).z;
 }
 
 // Bilinear Interpolation
@@ -98,8 +98,8 @@ void Bilinear (uint3 id : SV_DispatchThreadID)
 [numthreads(8,8,1)]
 void makeTexture (uint3 id : SV_DispatchThreadID)
 {
-    int index = id.x * 3 + id.y * 3 * 300;
-    if (id.x == handX && id.y == handY)
+    int index = id.x * 3 + (399-id.y) * 3 * 300;
+    if (id.x == handX*300/240 && (399-id.y) == handY*400/240)
     {
         outputTexture[id.xy] = float4(0, 1, 0, 1);
     }
