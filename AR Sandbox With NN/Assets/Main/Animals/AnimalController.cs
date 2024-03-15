@@ -44,7 +44,6 @@ public class AnimalController : MonoBehaviour
         Vector3 nextStep = animal.localPosition + rotation * Time.deltaTime * 20f;
         Vector3Int nextLook = Vector3Int.RoundToInt(animal.localPosition + rotation * 20);
         bool outOfBounds = nextLook.x >= terrain.xSize || nextLook.z >= terrain.zSize || nextLook.x <= 0 || nextLook.z <= 0;
-        Debug.Log(outOfBounds);
         if (outOfBounds)
         {
             animal.eulerAngles = new Vector3(animal.eulerAngles.x, animal.eulerAngles.y + 180, animal.eulerAngles.z);

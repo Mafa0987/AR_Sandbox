@@ -5,7 +5,7 @@ using System;
 
 public class NeuralNetwork : MonoBehaviour
 {
-    string[] labels = new string[] {"Open Hand", "Closed Hand"};
+    string[] labels = new string[] {"No Hand", "Open Hand", "Closed Hand"};
     ITensorAllocator allocator;
     Ops ops;
     public ModelAsset modelAsset1;
@@ -17,6 +17,7 @@ public class NeuralNetwork : MonoBehaviour
     TextureTransform transformLayout;
     TensorFloat inputTensor;
     public string predictedLabel;
+    public float probability;
     public int x_cord;
     public int y_cord;
 
@@ -116,16 +117,19 @@ public class NeuralNetwork : MonoBehaviour
         inputTensor.Dispose();
         TensorFloat gesture_output = worker1.PeekOutput("gesture_output") as TensorFloat;
         gesture_output.MakeReadable();
-        if (gesture_output[0] > gesture_output[1])
+        int maxIndex = 0;
+        float max = 0;
+        for (int i = 0; i < gesture_output.shape[1]; i++)
         {
-            Debug.Log($"Open hand with probability: {gesture_output[0]}");
-            predictedLabel = "Open Hand";
+            if (gesture_output[i] > max)
+            {
+                max = gesture_output[i];
+                maxIndex = i;
+            }
         }
-        else
-        {
-            Debug.Log($"Closed Hand with probability: {gesture_output[1]}");
-            predictedLabel = "Closed Hand";
-        }
+        predictedLabel = labels[maxIndex];
+        probability = max;
+        Debug.Log(predictedLabel);
         TensorFloat position_output = worker1.PeekOutput("position_output") as TensorFloat;
         position_output.MakeReadable();
         x_cord = (int)(position_output[0] * xSize / modelRes);

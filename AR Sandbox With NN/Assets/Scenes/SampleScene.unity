@@ -2876,9 +2876,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09f88ba7bd3b19546a08a48f6892ee2d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  modelAsset1: {fileID: 5022602860645237092, guid: 25efbafca6a4f5e4da97b3094789c5d3, type: 3}
+  modelAsset1: {fileID: 5022602860645237092, guid: 9ced3915c7e5c0b4ab8642d95e103443, type: 3}
   modelAsset2: {fileID: 5022602860645237092, guid: 0ca821b99854828499a52dabc6aa1bca, type: 3}
   predictedLabel: 
+  probability: 0
   x_cord: 0
   y_cord: 0
   msm: {fileID: 1617112940}
