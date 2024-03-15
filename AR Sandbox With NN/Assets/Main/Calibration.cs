@@ -93,7 +93,7 @@ public class Calibration : MonoBehaviour
         }
         if (PlayerPrefs.HasKey("rotation"))
         {
-            Camera.eulerAngles = new Vector3(Camera.rotation.x, PlayerPrefs.GetFloat("rotation"), Camera.rotation.z);
+            Camera.eulerAngles = new Vector3(90, PlayerPrefs.GetFloat("rotation"), 0);
         }
     }
 
@@ -182,7 +182,8 @@ public class Calibration : MonoBehaviour
         {
             // terrainpos.transform.rotation *= Quaternion.Euler(0, rotateSpeed, 0);
             // waterpos.transform.rotation *= Quaternion.Euler(0, rotateSpeed, 0);
-            Camera.rotation *= Quaternion.Euler(0, 0, rotateSpeed);
+            //Camera.rotation *= Quaternion.Euler(0, 0, rotateSpeed);
+            Camera.eulerAngles -= new Vector3(0, rotateSpeed, 0);
         }
         else if (Input.GetKey(KeyCode.RightArrow))
         {
@@ -199,7 +200,8 @@ public class Calibration : MonoBehaviour
         {
             // terrainpos.transform.rotation *= Quaternion.Euler(0, -rotateSpeed, 0);
             // waterpos.transform.rotation *= Quaternion.Euler(0, -rotateSpeed, 0);
-            Camera.rotation *= Quaternion.Euler(0, 0, -rotateSpeed);
+            //Camera.rotation *= Quaternion.Euler(0, 0, -rotateSpeed);
+            Camera.eulerAngles += new Vector3(0, rotateSpeed, 0);
         }
         else if (Input.GetKey(KeyCode.LeftArrow))
         {
@@ -279,6 +281,7 @@ public class Calibration : MonoBehaviour
         PlayerPrefs.SetFloat("maxTerrainHeight", maxTerrainHeight);
         PlayerPrefs.SetFloat("minTerrainHeight", minTerrainHeight);
         PlayerPrefs.SetFloat("rainOffset", rainOffset);
+        PlayerPrefs.SetFloat("rotation", Camera.eulerAngles.y);
         PlayerPrefs.SetInt("xCut1", xCutNew.x);
         PlayerPrefs.SetInt("xCut2", xCutNew.y);
         PlayerPrefs.SetInt("zCut1", zCutNew.x);

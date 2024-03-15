@@ -34,27 +34,39 @@ public class NeuralNetwork : MonoBehaviour
     ComputeBuffer output;
     float[] outputArray;
 
+    TensorShape shape;
+
+    //parameters
+    int orginalWidth = 512;
+    int orginalHeight = 424;
+    int xCutL = 124;
+    int xCutB = 19;
+    int modelRes = 256;
+    int xSize = 300;
+    int zSize = 400;
+
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        outputArray = new float[240*240*3];
-        input = new ComputeBuffer(300*400*3, sizeof(float));
-        depthDataShort = new ComputeBuffer(512 * 424 / 2, sizeof(uint));
-        depthData = new ComputeBuffer(512*424, sizeof(uint));
-        output = new ComputeBuffer(240*240*3, sizeof(float));
+        outputArray = new float[modelRes*modelRes*3];
+        input = new ComputeBuffer(xSize*zSize*3, sizeof(float));
+        depthDataShort = new ComputeBuffer(orginalWidth * orginalHeight / 2, sizeof(uint));
+        depthData = new ComputeBuffer(orginalWidth*orginalHeight, sizeof(uint));
+        output = new ComputeBuffer(modelRes*modelRes*3, sizeof(float));
 
-        tensorTexture = new Texture2D(240, 240);
-        outputTexture = new RenderTexture(240, 240, 24, RenderTextureFormat.ARGB32);
+        tensorTexture = new Texture2D(modelRes, modelRes);
+        outputTexture = new RenderTexture(xSize, zSize, 24, RenderTextureFormat.ARGB32);
         outputTexture.enableRandomWrite = true;
         outputTexture.Create();
         
-        allocator = new TensorCachingAllocator();
-        ops = WorkerFactory.CreateOps(BackendType.GPUCompute, allocator);
+        shape = new TensorShape(1, modelRes, modelRes, 3);
         runtimeModel1 = ModelLoader.Load(modelAsset1);
         runtimeModel2 = ModelLoader.Load(modelAsset2);
         worker1 = WorkerFactory.CreateWorker(BackendType.GPUCompute, runtimeModel1);
         worker2 = WorkerFactory.CreateWorker(BackendType.GPUCompute, runtimeModel2);
+        // allocator = new TensorCachingAllocator();
+        // ops = WorkerFactory.CreateOps(BackendType.GPUCompute, allocator);
 
         computeShader.SetTexture(3, "outputTexture", outputTexture);
         computeShader.SetBuffer(3, "input", input);
@@ -64,35 +76,60 @@ public class NeuralNetwork : MonoBehaviour
         computeShader.SetBuffer(1, "input", input);
         computeShader.SetBuffer(2, "input", input);
         computeShader.SetBuffer(2, "output", output);
-        computeShader.SetInt("inputDimX", 300);
-        computeShader.SetInt("inputDimY", 400);
-        computeShader.SetInt("xCutL", 124);
-        computeShader.SetInt("zCutB", 19);
-        computeShader.SetFloat("ratioX", 300f/240f);
-        computeShader.SetFloat("ratioY", 400f/240f);
+        computeShader.SetInt("inputDimX", xSize);
+        computeShader.SetInt("inputDimY", zSize);
+        computeShader.SetInt("xCutL", xCutL);
+        computeShader.SetInt("zCutB", xCutB);
+        computeShader.SetFloat("ratioX", (float)xSize/(float)modelRes);
+        computeShader.SetFloat("ratioY", (float)zSize/(float)modelRes);
+        computeShader.SetInt("modelRes", modelRes);
     }
 
     // Update is called once per frame
     void Update()
     {
+        SingleModel();
+    }
+
+    void SingleModel()
+    {
         kinectDepth = msm.GetDepthData();
-        //depthDataShort.SetData(kinectDepth);
-        kinectColor = processDepthData(kinectDepth, 124, 88, 19, 5);
-        scaledTexture = Bilinear(kinectColor, 240, 240);
-        // computeShader.Dispatch(0, 512*424/2/64, 1, 1);
-        // computeShader.Dispatch(1, (int)Mathf.Ceil(300/8f), (int)Mathf.Ceil(400/8f), 1);
-        // computeShader.Dispatch(2, 240/8, 240/8, 1);
-        // output.GetData(outputArray);
-        for (int y = 0; y < 240; y++)
-        {
-            for (int x = 0; x < 240; x++)
-            {
-                outputArray[x*3 + y*240*3] = scaledTexture.GetPixel(x, 239-y).r;
-                outputArray[x*3+1 + y*240*3] = scaledTexture.GetPixel(x, 239-y).g;
-                outputArray[x*3+2 + y*240*3] = scaledTexture.GetPixel(x, 239-y).b;
-            }
-        }
-        TensorShape shape = new TensorShape(1, 240, 240, 3);
+        depthDataShort.SetData(kinectDepth);
+        computeShader.Dispatch(0, orginalWidth*orginalHeight/2/64, 1, 1);
+        computeShader.Dispatch(1, orginalWidth, orginalHeight, 1);
+        computeShader.Dispatch(2, modelRes/8, modelRes/8, 1);
+        output.GetData(outputArray);
+
+        inputTensor = new TensorFloat(shape, outputArray);
+        worker1.Execute(inputTensor);
+        inputTensor.Dispose();
+        TensorFloat gesture_output = worker1.PeekOutput("gesture_output") as TensorFloat;
+        gesture_output.MakeReadable();
+        if (gesture_output[0] > gesture_output[1])
+            Debug.Log($"Open hand with probability: {gesture_output[0]}");
+        else
+            Debug.Log($"Closed Hand with probability: {gesture_output[1]}");
+
+        TensorFloat position_output = worker1.PeekOutput("position_output") as TensorFloat;
+        position_output.MakeReadable();
+        int x_cord = (int)position_output[0];
+        int y_cord = (int)position_output[1];
+        computeShader.SetInt("handX", x_cord);
+        computeShader.SetInt("handY", y_cord);
+        computeShader.Dispatch(3, xSize/8, zSize/8, 1);
+        rawImage.texture = outputTexture;
+        
+    }
+
+    void TwoModels()
+    {
+        kinectDepth = msm.GetDepthData();
+        depthDataShort.SetData(kinectDepth);
+        computeShader.Dispatch(0, orginalWidth*orginalHeight/2/64, 1, 1);
+        computeShader.Dispatch(1, (int)Mathf.Ceil(xSize/8f), (int)Mathf.Ceil(zSize/8f), 1);
+        computeShader.Dispatch(2, modelRes/8, modelRes/8, 1);
+        output.GetData(outputArray);
+        TensorShape shape = new TensorShape(1, modelRes, modelRes, 3);
         inputTensor = new TensorFloat(shape, outputArray);
         inputTensor = ops.Mul(inputTensor, 255.0f);
         worker1.Execute(inputTensor);
@@ -115,36 +152,67 @@ public class NeuralNetwork : MonoBehaviour
         inputTensor.MakeReadable();
         computeShader.SetInt("handX", (int)x_cord);
         computeShader.SetInt("handY", (int)y_cord);
-        computeShader.Dispatch(3, 240/8, 240/8, 1);
-        for (int y = 0; y < 240; y++)
-        {
-            for (int x = 0; x < 240; x++)
-            {
-                tensorTexture.SetPixel(x, 239-y, new Color(inputTensor[0, y, x, 0]/255f, inputTensor[0, y, x, 1]/255f, inputTensor[0, y, x, 2]/255f));
-            }
-        }
-        tensorTexture.SetPixel((int)x_cord, 240-(int)y_cord, new Color(0, 1, 0));
-        tensorTexture.SetPixel((int)x_cord+1, 240-(int)y_cord, new Color(0, 1, 0));
-        tensorTexture.SetPixel((int)x_cord-1, 240-(int)y_cord, new Color(0, 1, 0));
-        tensorTexture.SetPixel((int)x_cord, 240-(int)y_cord+1, new Color(0, 1, 0));
-        tensorTexture.SetPixel((int)x_cord, 240-(int)y_cord-1, new Color(0, 1, 0));
-        tensorTexture.Apply();
-        rawImage.texture = tensorTexture;
+        computeShader.Dispatch(3, modelRes/8, modelRes/8, 1);
+        rawImage.texture = outputTexture;
         outputTensor1?.Dispose();
         outputTensor2?.Dispose();
     }
 
-    void OnDestroy()
+    void TwoModelsCPU()
     {
-        allocator?.Dispose();
-        ops?.Dispose();
-        worker1?.Dispose();
-        worker2?.Dispose();
-        inputTensor?.Dispose();
-        depthDataShort?.Dispose();
-        depthData?.Dispose();
-        input?.Dispose();
-        output?.Dispose();
+        kinectDepth = msm.GetDepthData();
+        kinectColor = processDepthData(kinectDepth, 124, 88, 19, 5);
+        scaledTexture = Bilinear(kinectColor, modelRes, modelRes);
+
+        for (int y = 0; y < modelRes; y++)
+        {
+            for (int x = 0; x < modelRes; x++)
+            {
+                outputArray[x*3 + y*modelRes*3] = scaledTexture.GetPixel(x, 239-y).r;
+                outputArray[x*3+1 + y*modelRes*3] = scaledTexture.GetPixel(x, 239-y).g;
+                outputArray[x*3+2 + y*modelRes*3] = scaledTexture.GetPixel(x, 239-y).b;
+            }
+        }
+        TensorShape shape = new TensorShape(1, modelRes, modelRes, 3);
+        inputTensor = new TensorFloat(shape, outputArray);
+        inputTensor = ops.Mul(inputTensor, 255.0f);
+        worker1.Execute(inputTensor);
+        TensorFloat outputTensor1 = worker1.PeekOutput() as TensorFloat;
+        var coordinates = outputTensor1;
+        coordinates.MakeReadable();
+        var x_cord = coordinates[0];
+        var y_cord = coordinates[1];
+        Debug.Log($"x: {x_cord}, y: {y_cord}");
+        inputTensor.MakeReadable();
+        worker2.Execute(inputTensor);
+        TensorFloat outputTensor2 = worker2.PeekOutput() as TensorFloat;
+        var probabilities = outputTensor2;
+        var indexOfMaxProba = ops.ArgMax(probabilities, -1, false);
+        probabilities.MakeReadable();
+        indexOfMaxProba.MakeReadable();
+        var predictedNumber = indexOfMaxProba[0];
+        var probability = probabilities[predictedNumber];
+        Debug.Log($"Predicted label: {labels[predictedNumber]} with probability: {probability}");
+        inputTensor.MakeReadable();
+        computeShader.SetInt("handX", (int)x_cord);
+        computeShader.SetInt("handY", (int)y_cord);
+        computeShader.Dispatch(3, modelRes/8, modelRes/8, 1);
+        for (int y = 0; y < modelRes; y++)
+        {
+            for (int x = 0; x < modelRes; x++)
+            {
+                tensorTexture.SetPixel(x, 239-y, new Color(inputTensor[0, y, x, 0]/255f, inputTensor[0, y, x, 1]/255f, inputTensor[0, y, x, 2]/255f));
+            }
+        }
+        tensorTexture.SetPixel((int)x_cord, modelRes-(int)y_cord, new Color(0, 1, 0));
+        tensorTexture.SetPixel((int)x_cord+1, modelRes-(int)y_cord, new Color(0, 1, 0));
+        tensorTexture.SetPixel((int)x_cord-1, modelRes-(int)y_cord, new Color(0, 1, 0));
+        tensorTexture.SetPixel((int)x_cord, modelRes-(int)y_cord+1, new Color(0, 1, 0));
+        tensorTexture.SetPixel((int)x_cord, modelRes-(int)y_cord-1, new Color(0, 1, 0));
+        tensorTexture.Apply();
+        rawImage.texture = tensorTexture;
+        outputTensor1?.Dispose();
+        outputTensor2?.Dispose();
     }
 
     Texture2D Bilinear(Texture2D origImage, int newWidth, int newHeight)
@@ -184,14 +252,14 @@ public class NeuralNetwork : MonoBehaviour
 
     Texture2D processDepthData(ushort[] depthData, int xCut1, int xCut2, int zCut1, int zCut2)
     {
-        int width = 512-xCut1-xCut2;
-        int height = 424-zCut1-zCut2;
+        int width = orginalWidth-xCut1-xCut2;
+        int height = orginalHeight-zCut1-zCut2;
         Texture2D tex = new Texture2D(width, height, TextureFormat.RGB24, false);
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
             {
-                float depth = Mathf.Clamp(depthData[x + xCut1 + (y + zCut1)*512] / 4500f, 0, 1);
+                float depth = Mathf.Clamp(depthData[x + xCut1 + (y + zCut1)*orginalWidth] / 4500f, 0, 1);
                 tex.SetPixel(x, y, GetColor(depth));
             }
             
@@ -216,6 +284,19 @@ public class NeuralNetwork : MonoBehaviour
         if (height > 1)
             Debug.Log("error");
         return new Color(0, 0, 1);
+    }
+
+    void OnDestroy()
+    {
+        allocator?.Dispose();
+        ops?.Dispose();
+        worker1?.Dispose();
+        worker2?.Dispose();
+        inputTensor?.Dispose();
+        depthDataShort?.Dispose();
+        depthData?.Dispose();
+        input?.Dispose();
+        output?.Dispose();
     }
 
 }

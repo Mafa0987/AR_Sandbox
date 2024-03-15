@@ -103,20 +103,20 @@ while(True):
                 for j in range(depthx-5, depthx+5):
                     if i >= 0 and i < 400 and j >= 0 and j < 300:
                         depthCopy[i, j] = [0, 255, 0]
-            if run:
-                if rate > 1:
-                    rate = 0
-                    f = open(f"C:/Users/mkf99/AR_Sandbox/NeuralNetwork/Data/PNG_A/Positions/ClosedHand/{number}.txt", "x")
-                    f.write(str(depthx) + " " + str(depthy))
-                    cv2.imwrite(f"C:/Users/mkf99/AR_Sandbox/NeuralNetwork/Data/PNG_A/Images/ClosedHand/{number}.png", depth)
-                    f.close()
-                    if number == 499:
-                        break
-                    else:
-                        number += 1
-                    print(number)
-                else:
-                    rate += 1
+            # if run:
+            #     if rate > 1:
+            #         rate = 0
+            #         f = open(f"C:/Users/mkf99/AR_Sandbox/NeuralNetwork/Data/PNG_A/Positions/ClosedHand/{number}.txt", "x")
+            #         f.write(str(depthx) + " " + str(depthy))
+            #         cv2.imwrite(f"C:/Users/mkf99/AR_Sandbox/NeuralNetwork/Data/PNG_A/Images/ClosedHand/{number}.png", depth)
+            #         f.close()
+            #         if number == 499:
+            #             break
+            #         else:
+            #             number += 1
+            #         print(number)
+            #     else:
+            #         rate += 1
         cv2.imshow('image', depthCopy)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break

@@ -19,10 +19,12 @@ int xCutL;
 int zCutB;
 int handX;
 int handY;
+int modelRes;
 
 RWTexture2D<float4> outputTexture;
 
 static float3 colorsArray[] = {float3(1, 0, 0), float3(1, 0.5, 0), float3(1, 1, 0), float3(0, 1, 0), float3(0, 0, 1)};
+//static float3 colorsArray[] = {float3(255, 0, 0), float3(255, 127.5, 0), float3(255, 255, 0), float3(0, 255, 0), float3(0, 0, 255)};
 
 float3 GetColor(float height)
 {
@@ -56,16 +58,16 @@ void ColorMapping (uint3 id : SV_DispatchThreadID)
     if (id.x >= inputDimX || id.y >= inputDimY)
         return;
     float depth = clamp(depthData[id.x + xCutL + (id.y + zCutB)*512] / 4500.0, 0, 1);
-    input[id.x*3 + (399-id.y)*3*inputDimX] = GetColor(depth).x;
-    input[id.x*3 + (399-id.y)*3*inputDimX + 1] = GetColor(depth).y;
-    input[id.x*3 + (399-id.y)*3*inputDimX + 2] = GetColor(depth).z;
+    input[id.x*3 + (inputDimY-1-id.y)*3*inputDimX] = GetColor(depth).x*255.0;
+    input[id.x*3 + (inputDimY-1-id.y)*3*inputDimX + 1] = GetColor(depth).y*255.0;
+    input[id.x*3 + (inputDimY-1-id.y)*3*inputDimX + 2] = GetColor(depth).z*255.0;
 }
 
 // Bilinear Interpolation
 [numthreads(8,8,1)]
 void Bilinear (uint3 id : SV_DispatchThreadID)
 {
-    int index = id.x * 3 + id.y * 3 * 240;
+    int index = id.x * 3 + id.y * 3 * 256;
     float x = id.x * ratioX;
     float y = id.y * ratioY;
     int x1 = (int)floor(x);
@@ -95,16 +97,17 @@ void Bilinear (uint3 id : SV_DispatchThreadID)
     output[index + 1] = colorOut.g;
     output[index + 2] = colorOut.b;
 }
+
 [numthreads(8,8,1)]
 void makeTexture (uint3 id : SV_DispatchThreadID)
 {
-    int index = id.x * 3 + (399-id.y) * 3 * 300;
-    if (id.x == handX*300/240 && (399-id.y) == handY*400/240)
+    int index = id.x * 3 + (inputDimY-1-id.y) * 3 * inputDimX;
+    if ((id.x - (handX*inputDimX/256))*(id.x - (handX*inputDimX/256)) + ((inputDimY-1-id.y) - handY*inputDimY/256)*((inputDimY-1-id.y) - handY*inputDimY/256) < 10)
     {
         outputTexture[id.xy] = float4(0, 1, 0, 1);
     }
     else
     {
-        outputTexture[id.xy] = float4(input[index], input[index + 1], input[index + 2], 1);
+        outputTexture[id.xy] = float4(input[index]/255.0, input[index + 1]/255.0, input[index + 2]/255.0, 1);
     }
 }

@@ -93,10 +93,10 @@ public class Water : MonoBehaviour
         WaterCS.SetFloat("zSize", zSize);
         WaterCS.SetFloat("a", a);
         WaterCS.SetFloat("rainHeight", calibration.rainHeight);
-        WaterCS.SetInt("handPositionX", nn.handPosition.x);
-        WaterCS.SetInt("handPositionY", nn.handPosition.y);
+        WaterCS.SetInt("handPositionX", nn.x_cord);
+        WaterCS.SetInt("handPositionY", nn.y_cord);
         
-        if (nn.predictedLabel == "Open Hand" && nn.probability > 0.9)
+        if (nn.predictedLabel == "Open Hand")
         {
             WaterCS.Dispatch(4, 512/8, 424/8, 1);
         }
