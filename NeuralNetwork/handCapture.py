@@ -108,7 +108,7 @@ while(True):
                 rate = 0
                 f = open(f"C:/Users/mkf99/AR_Sandbox/NeuralNetwork/Data/PNG_A/Positions/NoHand/{number}.txt", "x")
                 #f.write(str(depthx) + " " + str(depthy))
-                f.write(str(0) + " " + str(0))
+                f.write(str(-1) + " " + str(-1))
                 cv2.imwrite(f"C:/Users/mkf99/AR_Sandbox/NeuralNetwork/Data/PNG_A/Images/NoHand/{number}.png", depth)
                 f.close()
                 if number == 499:
