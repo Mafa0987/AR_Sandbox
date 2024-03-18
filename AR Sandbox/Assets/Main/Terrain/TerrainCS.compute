@@ -3,6 +3,7 @@
 #pragma kernel CSContour
 #pragma kernel ShortToInt
 #pragma kernel HMProcessing
+#pragma kernel Refraction
 
 #define norm(height) ((height-minTerrainHeight)/(maxTerrainHeight-minTerrainHeight))
 
@@ -10,6 +11,9 @@ RWStructuredBuffer<float3> vertices;
 RWStructuredBuffer<float> heightmap;
 RWStructuredBuffer<float> heightmapRaw;
 RWTexture2D<float4> colors;
+
+RWStructuredBuffer<float3> waterNormals;
+RWStructuredBuffer<float> waterDepths;
 
 RWStructuredBuffer<uint> old;
 RWStructuredBuffer<uint> ny;
@@ -274,6 +278,51 @@ void CSContour (uint3 id : SV_DispatchThreadID)
     {
         DrawContour((float)i/20.0, vertices, maxTerrainHeight, minTerrainHeight, colors, id.x, id.y);
     }
+}
+
+float3 CalculateRefractionDirection(float3 normal, float3 incident, float n1, float n2)
+{
+    float n = n1 / n2;
+    float cosI = dot(normal, incident);
+    float sinT2 = n * n * (1.0 - cosI * cosI);
+    if (sinT2 > 1.0)
+        return float3(0, 0, 0);
+    float cosT = sqrt(1.0 - sinT2);
+    return n * incident + (n * cosI - cosT) * normal;
+}
+
+float4 InterpolateTexture(float2 value, RWTexture2D<float4> _texture, int textureWidth, int textureHeight)
+{
+    int x1 = (int)floor(value.x);
+    int y1 = (int)floor(value.y);
+    int x2 = min(x1 + 1, textureWidth - 1);
+    int y2 = min(y1 + 1, textureHeight - 1);
+    float4 c00 = _texture[uint2(x1, y1)];
+    float4 c10 = _texture[uint2(x2, y1)];
+    float4 c01 = _texture[uint2(x1, y2)];
+    float4 c11 = _texture[uint2(x2, y2)];
+    float4 c0 = lerp(c00, c10, value.x - x1);
+    float4 c1 = lerp(c01, c11, value.x - x1);
+    float4 colorOut = lerp(c0, c1, value.y - y1);
+    return colorOut;
+}
+
+[numthreads(8,8,1)]
+void Refraction (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= xSize*4 || id.y >= zSize*4)
+        return;
+
+    float heightadjustment = 1;
+    float currentDepth = min(waterDepths[id.x/4 + id.y/4 * xSize] * heightadjustment, 15.0);
+    if (currentDepth <= 2)
+        return;
+    float3 incident = float3(0 , -1, 0);
+    float3 normal = waterNormals[id.x/4 + id.y/4 * xSize];
+    float3 refracted = CalculateRefractionDirection(normal, incident, 1.0, 1.33);
+    float2 displacedCoords = float2(min(id.x + refracted.x * currentDepth, xSize*4-1), min(id.y + refracted.z * currentDepth, zSize*4-1));
+    float4 terrainColor = InterpolateTexture(displacedCoords, colors, xSize*4, zSize*4);
+    colors[uint2(id.x, id.y)] = terrainColor;
 }
 
 

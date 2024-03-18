@@ -1920,6 +1920,7 @@ MonoBehaviour:
   maxTerrainHeight: 10
   rainHeight: 10
   rainOffset: 0
+  water: {fileID: 1244409265}
 --- !u!64 &847163007
 MeshCollider:
   m_ObjectHideFlags: 0
