@@ -121,5 +121,5 @@ void WaterColor (uint3 id : SV_DispatchThreadID)
         return;
     int vert = id.x + id.y * xSize;
     float depth = depthMap[vert];
-    colors[id.xy] = float4(0, 0, 0.5, clamp(depth / 10, 0, 0.9));
+    colors[id.xy] = float4(0, 0, 0.5, clamp(depth / 10, 0, 0.7));
 }

@@ -68,6 +68,9 @@ public class TerrainGen : MonoBehaviour
     uint[] ny;
     ComputeBuffer nyBuffer;
     ComputeBuffer heightmapRawBuffer;
+
+    public Water water;
+    ComputeBuffer waterNormals;
     //test
 
     // Start is called before the first frame update
@@ -100,7 +103,7 @@ public class TerrainGen : MonoBehaviour
     void CreateShapeGPU()
     {
         //CreateHeightmap();
-        heightmap_short = msm.GetDepthData();
+        //heightmap_short = msm.GetDepthData();
         oldBuffer.SetData(heightmap_short);
         //Converts Heightmap to integer
         computeShader.Dispatch(2, 512*424/2/64, 1, 1);
@@ -129,6 +132,8 @@ public class TerrainGen : MonoBehaviour
         //verticesBuffer.GetData(vertices);
         computeShader.Dispatch(1, 128/8, 105/7, 1);
         verticesBuffer.GetData(vertices);
+        waterNormals.SetData(water.normals);
+        computeShader.Dispatch(4, (int)Mathf.Ceil(xSize*4/8), (int)Mathf.Ceil(zSize*4/8), 1);
     }
     void UpdateMesh()
     {
@@ -145,6 +150,7 @@ public class TerrainGen : MonoBehaviour
         heightmapRawBuffer = new ComputeBuffer(heightmapRaw.Length, sizeof(float));
         averageBuffer = new ComputeBuffer(N*num_arrays, sizeof(uint));
         sampleSums = new ComputeBuffer(originalWidth * originalHeight, sizeof(uint));
+        waterNormals = new ComputeBuffer(xSize * zSize, sizeof(float) * 3);
         colors = new RenderTexture(xSize*4, zSize*4, 24);
         colors.enableRandomWrite = true;
         colors.Create();
@@ -152,6 +158,8 @@ public class TerrainGen : MonoBehaviour
         computeShader.SetBuffer(0, "heightmap", heightBuffer);
         computeShader.SetBuffer(0, "vertices", verticesBuffer);
         computeShader.SetTexture(0, "colors", colors);
+        computeShader.SetTexture(4, "colors", colors);
+        computeShader.SetBuffer(4, "waterNormals", waterNormals);
         computeShader.SetBuffer(1, "heightmap", heightBuffer);
         computeShader.SetBuffer(3, "heightmap", heightBuffer);
         computeShader.SetBuffer(1, "vertices", verticesBuffer);
@@ -214,19 +222,19 @@ public class TerrainGen : MonoBehaviour
         heightmap_short = new ushort[originalWidth * originalHeight];
         heightmapRaw = new float[xSize * zSize];
         heightmap = new float[xSize * zSize];
-        // for (int i = 0, z = 0; z < originalHeight; z++)
-        // {
-        //     for (int x = 0; x < originalWidth; x++)
-        //     {
-        //         ushort y =
-        //             (ushort)((amplitude1 * Mathf.PerlinNoise(x * frequency1,z * frequency1)
-        //             + amplitude2 * Mathf.PerlinNoise(x * frequency2, z * frequency2)
-        //             + amplitude3 * Mathf.PerlinNoise(x * frequency3, z * frequency3)
-        //                 * noiseStrength)*300*4/25/2);
-        //         heightmap_short[i] = y;
-        //         i++;
-        //     }
-        // }
+        for (int i = 0, z = 0; z < originalHeight; z++)
+        {
+            for (int x = 0; x < originalWidth; x++)
+            {
+                ushort y =
+                    (ushort)((amplitude1 * Mathf.PerlinNoise(x * frequency1,z * frequency1)
+                    + amplitude2 * Mathf.PerlinNoise(x * frequency2, z * frequency2)
+                    + amplitude3 * Mathf.PerlinNoise(x * frequency3, z * frequency3)
+                        * noiseStrength)*300*4/25/2);
+                heightmap_short[i] = y;
+                i++;
+            }
+        }
     }
 
     void CreateUV()
@@ -263,5 +271,6 @@ public class TerrainGen : MonoBehaviour
         heightmapRawBuffer.Release();
         averageBuffer.Release();
         sampleSums.Release();
+        waterNormals.Release();
     }
 }
