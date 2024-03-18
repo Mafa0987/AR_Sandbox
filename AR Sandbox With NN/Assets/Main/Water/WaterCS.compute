@@ -33,7 +33,7 @@ void AddWater (uint3 id : SV_DispatchThreadID)
     int index = id.x + id.y * xSize;
     if ((id.x-handPositionX)*(id.x-handPositionX) + (id.y-handPositionY)*(id.y-handPositionY) < 2500)
     {
-        depthMap[index] += 1 * dt;
+        depthMap[index] += 10 * dt;
     }
 }
 
@@ -123,5 +123,5 @@ void WaterColor (uint3 id : SV_DispatchThreadID)
         return;
     int vert = id.x + id.y * xSize;
     float depth = depthMap[vert];
-    colors[id.xy] = float4(0, 0, 0.5, clamp(depth / 10, 0, 0.9));
+    colors[id.xy] = float4(0, 0, 0.4, clamp(depth / 10, 0, 0.7));
 }

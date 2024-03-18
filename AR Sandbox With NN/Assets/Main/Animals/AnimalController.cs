@@ -16,11 +16,11 @@ public class AnimalController : MonoBehaviour
         for (int i = 0; i < fish.Length; i++)
         {
             //fish[i].position = new Vector3(Random.Range(0, terrain.xSize), 1000, Random.Range(0, terrain.zSize));
-            fish[i].position = new Vector3(100, 1000, 200);
+            fish[i].localPosition = new Vector3(100, 1000, 200);
         }
         for (int i = 0; i < deer.Length; i++)
         {
-            deer[i].position = new Vector3(170, 1000, 350);
+            deer[i].localPosition = new Vector3(170, 1000, 350);
         }
     }
 

@@ -36,6 +36,7 @@ public class Water : MonoBehaviour
     ComputeBuffer heightmapBuffer;
     ComputeBuffer heightmapRawBuffer;
     ComputeBuffer depthMapBuffer;
+    public Vector3[] normals;
 
     // Start is called before the first frame update
     void Start()
@@ -96,10 +97,10 @@ public class Water : MonoBehaviour
         WaterCS.SetInt("handPositionX", nn.x_cord);
         WaterCS.SetInt("handPositionY", nn.y_cord);
         
-        if (nn.predictedLabel == "Open Hand")
-        {
-            WaterCS.Dispatch(4, 512/8, 424/8, 1);
-        }
+        //if (nn.predictedLabel == "Open Hand")
+        //{
+        WaterCS.Dispatch(4, 512/8, 424/8, 1);
+        //}
         WaterCS.Dispatch(0, 512/8, 424/8, 1);
         WaterCS.Dispatch(1, 512/8, 424/8, 1);
         verticesBuffer.GetData(vertices);
@@ -110,6 +111,7 @@ public class Water : MonoBehaviour
     {
         mesh.vertices = vertices;
         mesh.RecalculateNormals();
+        normals = mesh.normals;
         waterMaterial.mainTexture = colors;
     }
 
@@ -139,6 +141,8 @@ public class Water : MonoBehaviour
         WaterCS.SetBuffer(1, "depthMap", depthMapBuffer);
         WaterCS.SetBuffer(3, "depthMap", depthMapBuffer);
         WaterCS.SetTexture(3, "colors", colors);
+
+        terrain.computeShader.SetBuffer(4, "waterDepths", depthMapBuffer);
 
         //test
         WaterCS.SetBuffer(2, "vertices", verticesBuffer);

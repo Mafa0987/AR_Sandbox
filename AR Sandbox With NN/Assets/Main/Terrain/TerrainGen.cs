@@ -35,6 +35,7 @@ public class TerrainGen : MonoBehaviour
     int num_arrays = 30;
     int sampleIndex = 0;
     ComputeBuffer sampleSums;
+    ComputeBuffer squaredSums;
     //test
 
     public float[] heightmap;
@@ -68,6 +69,9 @@ public class TerrainGen : MonoBehaviour
     uint[] ny;
     ComputeBuffer nyBuffer;
     ComputeBuffer heightmapRawBuffer;
+
+    public Water water;
+    ComputeBuffer waterNormals;
     //test
 
     // Start is called before the first frame update
@@ -129,6 +133,8 @@ public class TerrainGen : MonoBehaviour
         //verticesBuffer.GetData(vertices);
         computeShader.Dispatch(1, 128/8, 105/7, 1);
         verticesBuffer.GetData(vertices);
+        waterNormals.SetData(water.normals);
+        computeShader.Dispatch(4, (int)Mathf.Ceil(xSize*4/8), (int)Mathf.Ceil(zSize*4/8), 1);
     }
     void UpdateMesh()
     {
@@ -145,6 +151,8 @@ public class TerrainGen : MonoBehaviour
         heightmapRawBuffer = new ComputeBuffer(heightmapRaw.Length, sizeof(float));
         averageBuffer = new ComputeBuffer(N*num_arrays, sizeof(uint));
         sampleSums = new ComputeBuffer(originalWidth * originalHeight, sizeof(uint));
+        squaredSums = new ComputeBuffer(originalWidth * originalHeight, sizeof(uint));
+        waterNormals = new ComputeBuffer(xSize * zSize, sizeof(float) * 3);
         colors = new RenderTexture(xSize*4, zSize*4, 24);
         colors.enableRandomWrite = true;
         colors.Create();
@@ -152,6 +160,8 @@ public class TerrainGen : MonoBehaviour
         computeShader.SetBuffer(0, "heightmap", heightBuffer);
         computeShader.SetBuffer(0, "vertices", verticesBuffer);
         computeShader.SetTexture(0, "colors", colors);
+        computeShader.SetTexture(4, "colors", colors);
+        computeShader.SetBuffer(4, "waterNormals", waterNormals);
         computeShader.SetBuffer(1, "heightmap", heightBuffer);
         computeShader.SetBuffer(3, "heightmap", heightBuffer);
         computeShader.SetBuffer(1, "vertices", verticesBuffer);
@@ -182,6 +192,8 @@ public class TerrainGen : MonoBehaviour
         computeShader.SetBuffer(3, "heightmapRaw", heightmapRawBuffer);
         computeShader.SetBuffer(2, "sampleSums", sampleSums);
         computeShader.SetBuffer(3, "sampleSums", sampleSums);
+        computeShader.SetBuffer(2, "squaredSums", squaredSums);
+        computeShader.SetBuffer(3, "squaredSums", squaredSums);
         //test
     }
 
@@ -263,5 +275,7 @@ public class TerrainGen : MonoBehaviour
         heightmapRawBuffer.Release();
         averageBuffer.Release();
         sampleSums.Release();
+        squaredSums.Release();
+        waterNormals.Release();
     }
 }

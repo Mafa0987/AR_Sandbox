@@ -15,7 +15,6 @@ public class Calibration : MonoBehaviour
     LineRenderer line4;
     Transform Camera;
     GameObject terrainpos;
-    GameObject waterpos;
     Slider maxTerrainSlider;
     Slider minTerrainSlider;
     Slider xCutSlider1;
@@ -40,7 +39,6 @@ public class Calibration : MonoBehaviour
         line3 = GameObject.Find("Line3").GetComponent<LineRenderer>();
         line4 = GameObject.Find("Line4").GetComponent<LineRenderer>();
         terrainpos = GameObject.Find("TerrainTexture");
-        waterpos = GameObject.Find("WaterPlane");
         maxTerrainSlider = GameObject.Find("maxTerrainSlider").GetComponent<Slider>();
         minTerrainSlider = GameObject.Find("minTerrainSlider").GetComponent<Slider>();
         xCutSlider1 = GameObject.Find("xCutSlider1").GetComponent<Slider>();
@@ -48,7 +46,6 @@ public class Calibration : MonoBehaviour
         zCutSlider1 = GameObject.Find("zCutSlider1").GetComponent<Slider>();
         zCutSlider2 = GameObject.Find("zCutSlider2").GetComponent<Slider>();
         LoadTransform(terrainpos.transform);
-        LoadTransform(waterpos.transform);
         if (PlayerPrefs.HasKey("maxTerrainHeight"))
         {
             maxTerrainHeight = PlayerPrefs.GetFloat("maxTerrainHeight");
@@ -154,59 +151,45 @@ public class Calibration : MonoBehaviour
         if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.UpArrow))
         {
             terrainpos.transform.localScale += new Vector3(0, 0, scaleSpeed);
-            waterpos.transform.localScale += new Vector3(0, 0, scaleSpeed);
         }
         else if (Input.GetKey(KeyCode.UpArrow))
         {
             terrainpos.transform.position += new Vector3(0, 0, speed);
-            waterpos.transform.position += new Vector3(0, 0, speed);
         }
 
         if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.DownArrow))
         {
             terrainpos.transform.localScale += new Vector3(0, 0, -scaleSpeed);
-            waterpos.transform.localScale += new Vector3(0, 0, -scaleSpeed);
         }
         else if (Input.GetKey(KeyCode.DownArrow))
         {
             terrainpos.transform.position += new Vector3(0, 0, -speed);
-            waterpos.transform.position += new Vector3(0, 0, -speed);
         }
 
         if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.RightArrow))
         {
             terrainpos.transform.localScale += new Vector3(scaleSpeed, 0, 0);
-            waterpos.transform.localScale += new Vector3(scaleSpeed, 0, 0);
         }
         else if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.RightArrow))
         {
-            // terrainpos.transform.rotation *= Quaternion.Euler(0, rotateSpeed, 0);
-            // waterpos.transform.rotation *= Quaternion.Euler(0, rotateSpeed, 0);
-            //Camera.rotation *= Quaternion.Euler(0, 0, rotateSpeed);
             Camera.eulerAngles -= new Vector3(0, rotateSpeed, 0);
         }
         else if (Input.GetKey(KeyCode.RightArrow))
         {
             terrainpos.transform.position += new Vector3(speed, 0, 0);
-            waterpos.transform.position += new Vector3(speed, 0, 0);
         }
 
         if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.LeftArrow))
         {
             terrainpos.transform.localScale += new Vector3(-scaleSpeed, 0, 0);
-            waterpos.transform.localScale += new Vector3(-scaleSpeed, 0, 0);
         }
         else if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.LeftArrow))
         {
-            // terrainpos.transform.rotation *= Quaternion.Euler(0, -rotateSpeed, 0);
-            // waterpos.transform.rotation *= Quaternion.Euler(0, -rotateSpeed, 0);
-            //Camera.rotation *= Quaternion.Euler(0, 0, -rotateSpeed);
             Camera.eulerAngles += new Vector3(0, rotateSpeed, 0);
         }
         else if (Input.GetKey(KeyCode.LeftArrow))
         {
             terrainpos.transform.position += new Vector3(-speed, 0, 0);
-            waterpos.transform.position += new Vector3(-speed, 0, 0);
         }
 
         if (Input.GetKey(KeyCode.O))
@@ -287,7 +270,6 @@ public class Calibration : MonoBehaviour
         PlayerPrefs.SetInt("zCut1", zCutNew.x);
         PlayerPrefs.SetInt("zCut2", zCutNew.y);
         SaveTransform(terrainpos.transform);
-        SaveTransform(waterpos.transform);
     }
 
 }

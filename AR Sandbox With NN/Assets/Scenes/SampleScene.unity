@@ -1895,6 +1895,7 @@ Transform:
   - {fileID: 1439352992}
   - {fileID: 1852360999}
   - {fileID: 434325996}
+  - {fileID: 1244409264}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &847163006
@@ -1937,6 +1938,7 @@ MonoBehaviour:
   maxTerrainHeight: 10
   rainHeight: 10
   rainOffset: 0
+  water: {fileID: 1244409265}
 --- !u!64 &847163007
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -2820,12 +2822,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1244409261}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 847163005}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1244409265
 MonoBehaviour:
@@ -2847,6 +2849,7 @@ MonoBehaviour:
   c: 500
   a: 1
   WaterCS: {fileID: 7200000, guid: 4b8ba5bbfd384724d96414db903c62a0, type: 3}
+  normals: []
 --- !u!1 &1313332447
 GameObject:
   m_ObjectHideFlags: 0
@@ -2876,7 +2879,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09f88ba7bd3b19546a08a48f6892ee2d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  modelAsset1: {fileID: 5022602860645237092, guid: 9ced3915c7e5c0b4ab8642d95e103443, type: 3}
+  modelAsset1: {fileID: 5022602860645237092, guid: 3680343ae6ba0d644a2736b3f145151d, type: 3}
   modelAsset2: {fileID: 5022602860645237092, guid: 0ca821b99854828499a52dabc6aa1bca, type: 3}
   predictedLabel: 
   probability: 0
@@ -5166,7 +5169,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &2067048570
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5421,7 +5424,6 @@ SceneRoots:
   - {fileID: 963194228}
   - {fileID: 705507995}
   - {fileID: 847163005}
-  - {fileID: 1244409264}
   - {fileID: 1200049905}
   - {fileID: 137077530}
   - {fileID: 1617112941}
