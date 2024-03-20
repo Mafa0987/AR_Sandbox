@@ -9,13 +9,15 @@ public class AnimalController : MonoBehaviour
     public TerrainGen terrain;
     public Calibration calibration;
     float height;
-    //public Transform deer;
+    int[] fishRotateVal;
+    int[] deerRotateVal;
     // Start is called before the first frame update
     void Start()
     {
+        fishRotateVal = new int[fish.Length];
+        deerRotateVal = new int[deer.Length];
         for (int i = 0; i < fish.Length; i++)
         {
-            //fish[i].position = new Vector3(Random.Range(0, terrain.xSize), 1000, Random.Range(0, terrain.zSize));
             fish[i].localPosition = new Vector3(100, 1000, 200);
         }
         for (int i = 0; i < deer.Length; i++)
@@ -29,15 +31,15 @@ public class AnimalController : MonoBehaviour
     {
         for (int i = 0; i < fish.Length; i++)
         {
-            MoveAnimal(fish[i], 0.45f, 0f);
+            MoveAnimal(fish[i], 0.45f, 0f, ref fishRotateVal[i]);
         }   
         for (int i = 0; i < deer.Length; i++)
         {
-            MoveAnimal(deer[i], 1f, 0.5f);
+            MoveAnimal(deer[i], 1f, 0.5f, ref deerRotateVal[i]);
         }
     }
 
-    void MoveAnimal(Transform animal, float upperLim, float lowerLim)
+    void MoveAnimal(Transform animal, float upperLim, float lowerLim, ref int rotateVal)
     {
         float currentHeight = terrain.heightmap[Mathf.RoundToInt(animal.localPosition.x) + terrain.xSize * Mathf.RoundToInt(animal.localPosition.z)];
         Vector3 rotation = animal.forward;
@@ -53,6 +55,7 @@ public class AnimalController : MonoBehaviour
         height = (height - calibration.minTerrainHeight) / (calibration.maxTerrainHeight-calibration.minTerrainHeight);
         if (height < upperLim && height > lowerLim)
         {
+            rotateVal = 0;
             animal.localPosition = nextStep;
             animal.position = new Vector3(animal.position.x, currentHeight, animal.position.z);
             animal.eulerAngles = new Vector3(animal.eulerAngles.x, animal.eulerAngles.y + Random.Range(-100 * Time.deltaTime, 100 * Time.deltaTime), animal.eulerAngles.z);
@@ -85,8 +88,9 @@ public class AnimalController : MonoBehaviour
             heightRight = (heightRight - calibration.minTerrainHeight) / (calibration.maxTerrainHeight - calibration.minTerrainHeight);
             bool leftWater = heightLeft < upperLim && heightLeft > lowerLim;
             bool rightWater = heightRight < upperLim && heightRight > lowerLim;
-            int rotateVal = leftWater && !rightWater ? -100 : 100;
-            Vector3 nextStep2 = animal.localPosition + rotation * Time.deltaTime * 1f;
+            if (rotateVal == 0)
+                rotateVal = leftWater && !rightWater ? -100 : 100;
+            Vector3 nextStep2 = animal.localPosition + rotation * Time.deltaTime * 10f;
             animal.localPosition = nextStep2;
             animal.eulerAngles = new Vector3(animal.eulerAngles.x, animal.eulerAngles.y + rotateVal * Time.deltaTime, animal.eulerAngles.z);
         }

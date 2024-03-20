@@ -168,7 +168,8 @@ public class Calibration : MonoBehaviour
 
         if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.RightArrow))
         {
-            terrainpos.transform.localScale += new Vector3(scaleSpeed, 0, 0);
+            //terrainpos.transform.localScale += new Vector3(scaleSpeed, 0, 0);
+            terrainpos.transform.localScale += new Vector3(scaleSpeed, 0, scaleSpeed);
         }
         else if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.RightArrow))
         {
@@ -181,7 +182,8 @@ public class Calibration : MonoBehaviour
 
         if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.LeftArrow))
         {
-            terrainpos.transform.localScale += new Vector3(-scaleSpeed, 0, 0);
+            //terrainpos.transform.localScale += new Vector3(-scaleSpeed, 0, 0);
+            terrainpos.transform.localScale += new Vector3(-scaleSpeed, 0, -scaleSpeed);
         }
         else if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.LeftArrow))
         {
