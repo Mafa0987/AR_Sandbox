@@ -1,0 +1,23 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWStructuredBuffer<float> Data;
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    // TODO: insert actual code here!
+    float value = 0.0f;
+    value = value * 2.0f;
+    value = value + 1.0f;
+    value = value / 3.0f;
+    value = value - 4.0f;
+    value = value * 5.0f;
+    value = value + 6.0f;
+    value = value / 7.0f;
+    value = value - 8.0f;
+    value = value * 9.0f;
+    Data[id.x + id.y * 8] = value;
+}
