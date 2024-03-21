@@ -36,6 +36,7 @@ public class Water : MonoBehaviour
     ComputeBuffer heightmapBuffer;
     ComputeBuffer heightmapRawBuffer;
     ComputeBuffer depthMapBuffer;
+    ComputeBuffer waterNormals;
     public Vector3[] normals;
 
     // Start is called before the first frame update
@@ -78,6 +79,9 @@ public class Water : MonoBehaviour
         WaterCS.Dispatch(2, 512/8, 424/8, 1);
         verticesBuffer.GetData(vertices);
         UpdateMesh();
+        waterNormals.SetData(normals);
+        WaterCS.Dispatch(5, (int)Mathf.Ceil(xSize*4/8), (int)Mathf.Ceil(zSize*4/8), 1);
+        terrain.material.mainTexture = terrain.colors;
     }
 
     void UpdateHeights()
@@ -130,6 +134,7 @@ public class Water : MonoBehaviour
         heightmapBuffer = new ComputeBuffer(vertices.Length, sizeof(float));
         heightmapRawBuffer = new ComputeBuffer(vertices.Length, sizeof(float));
         depthMapBuffer = new ComputeBuffer(vertices.Length, sizeof(float));
+        waterNormals = new ComputeBuffer(vertices.Length, sizeof(float) * 3);
 
         WaterCS.SetBuffer(0, "vertices", verticesBuffer);
         WaterCS.SetBuffer(1, "vertices", verticesBuffer);
@@ -140,9 +145,12 @@ public class Water : MonoBehaviour
         WaterCS.SetBuffer(0, "depthMap", depthMapBuffer);
         WaterCS.SetBuffer(1, "depthMap", depthMapBuffer);
         WaterCS.SetBuffer(3, "depthMap", depthMapBuffer);
+        WaterCS.SetBuffer(5, "depthMap", depthMapBuffer);
+        WaterCS.SetTexture(5, "colorsTerrain", terrain.colors);
+        WaterCS.SetBuffer(5, "waterNormals", waterNormals);
         WaterCS.SetTexture(3, "colors", colors);
 
-        terrain.computeShader.SetBuffer(4, "waterDepths", depthMapBuffer);
+        //terrain.computeShader.SetBuffer(4, "waterDepths", depthMapBuffer);
 
         //test
         WaterCS.SetBuffer(2, "vertices", verticesBuffer);

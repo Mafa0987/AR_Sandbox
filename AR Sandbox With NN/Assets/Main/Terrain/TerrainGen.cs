@@ -70,7 +70,7 @@ public class TerrainGen : MonoBehaviour
     ComputeBuffer nyBuffer;
     ComputeBuffer heightmapRawBuffer;
 
-    public Water water;
+    //public Water water;
     ComputeBuffer waterNormals;
     //test
 
@@ -133,8 +133,8 @@ public class TerrainGen : MonoBehaviour
         //verticesBuffer.GetData(vertices);
         computeShader.Dispatch(1, 128/8, 105/7, 1);
         verticesBuffer.GetData(vertices);
-        waterNormals.SetData(water.normals);
-        computeShader.Dispatch(4, (int)Mathf.Ceil(xSize*4/8), (int)Mathf.Ceil(zSize*4/8), 1);
+        // waterNormals.SetData(water.normals);
+        // computeShader.Dispatch(4, (int)Mathf.Ceil(xSize*4/8), (int)Mathf.Ceil(zSize*4/8), 1);
     }
     void UpdateMesh()
     {
@@ -160,8 +160,8 @@ public class TerrainGen : MonoBehaviour
         computeShader.SetBuffer(0, "heightmap", heightBuffer);
         computeShader.SetBuffer(0, "vertices", verticesBuffer);
         computeShader.SetTexture(0, "colors", colors);
-        computeShader.SetTexture(4, "colors", colors);
-        computeShader.SetBuffer(4, "waterNormals", waterNormals);
+        // computeShader.SetTexture(4, "colors", colors);
+        // computeShader.SetBuffer(4, "waterNormals", waterNormals);
         computeShader.SetBuffer(1, "heightmap", heightBuffer);
         computeShader.SetBuffer(3, "heightmap", heightBuffer);
         computeShader.SetBuffer(1, "vertices", verticesBuffer);
