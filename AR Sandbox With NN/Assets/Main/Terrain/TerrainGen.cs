@@ -67,7 +67,7 @@ public class TerrainGen : MonoBehaviour
     ushort[] old;
     ComputeBuffer oldBuffer;
     uint[] ny;
-    ComputeBuffer nyBuffer;
+    public ComputeBuffer nyBuffer;
     ComputeBuffer heightmapRawBuffer;
 
     //public Water water;

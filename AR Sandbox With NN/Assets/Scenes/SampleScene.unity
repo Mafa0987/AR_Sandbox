@@ -2888,6 +2888,7 @@ MonoBehaviour:
   msm: {fileID: 1617112940}
   inputTexture: {fileID: 0}
   outputTexture: {fileID: 0}
+  terrain: {fileID: 847163006}
   rawImage: {fileID: 2067048570}
   computeShader: {fileID: 7200000, guid: 16cbde0090de63e4faeba2afebe2e8a6, type: 3}
   calibration: {fileID: 998414441}
@@ -5169,7 +5170,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &2067048570
 MonoBehaviour:
   m_ObjectHideFlags: 0

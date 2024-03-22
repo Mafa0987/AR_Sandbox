@@ -24,6 +24,7 @@ public class NeuralNetwork : MonoBehaviour
     public MultiSourceManager msm;
     public Texture2D inputTexture;
     public RenderTexture outputTexture;
+    public TerrainGen terrain;
     Texture2D tensorTexture;
     Texture2D scaledTexture;
     public RawImage rawImage;
@@ -58,7 +59,6 @@ public class NeuralNetwork : MonoBehaviour
         zSize = originalHeight - (calibration.zCut.x + calibration.zCut.y);
         xCutL = calibration.xCut.x;
         xCutB = calibration.zCut.x;
-        Debug.Log(xCutB);
         outputArray = new float[modelRes*modelRes*3];
         input = new ComputeBuffer(xSize*zSize*3, sizeof(float));
         depthDataShort = new ComputeBuffer(originalWidth * originalHeight / 2, sizeof(uint));
@@ -82,7 +82,9 @@ public class NeuralNetwork : MonoBehaviour
         computeShader.SetBuffer(3, "input", input);
         computeShader.SetBuffer(0, "depthDataShort", depthDataShort);
         computeShader.SetBuffer(0, "depthData", depthData);
-        computeShader.SetBuffer(1, "depthData", depthData);
+        //computeShader.SetBuffer(1, "depthData", depthData);
+        computeShader.SetBuffer(1, "depthData", terrain.nyBuffer);
+
         computeShader.SetBuffer(1, "input", input);
         computeShader.SetBuffer(2, "input", input);
         computeShader.SetBuffer(2, "output", output);
@@ -104,9 +106,9 @@ public class NeuralNetwork : MonoBehaviour
     void SingleModel()
     {
         //process image
-        kinectDepth = msm.GetDepthData();
-        depthDataShort.SetData(kinectDepth);
-        computeShader.Dispatch(0, originalWidth*originalHeight/2/64, 1, 1);
+        //kinectDepth = msm.GetDepthData();
+        // depthDataShort.SetData(kinectDepth);
+        //computeShader.Dispatch(0, originalWidth*originalHeight/2/64, 1, 1);
         computeShader.Dispatch(1, originalWidth, originalHeight, 1);
         computeShader.Dispatch(2, modelRes/8, modelRes/8, 1);
         output.GetData(outputArray);
@@ -129,7 +131,6 @@ public class NeuralNetwork : MonoBehaviour
         }
         predictedLabel = labels[maxIndex];
         probability = max;
-        Debug.Log(predictedLabel);
         TensorFloat position_output = worker1.PeekOutput("position_output") as TensorFloat;
         position_output.MakeReadable();
         x_cord = (int)(position_output[0] * xSize / modelRes);
