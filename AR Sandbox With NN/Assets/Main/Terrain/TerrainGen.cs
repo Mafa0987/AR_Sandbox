@@ -22,7 +22,7 @@ public class TerrainGen : MonoBehaviour
     Vector2[] uvs;
     int[] triangles;
     ComputeBuffer verticesBuffer;
-    ComputeBuffer heightBuffer;
+    public ComputeBuffer heightBuffer;
 
     public Slider minTerrainSlider;
     public Slider maxTerrainSlider;
@@ -73,6 +73,7 @@ public class TerrainGen : MonoBehaviour
     //public Water water;
     ComputeBuffer waterNormals;
     //test
+    public bool update = false;
 
     // Start is called before the first frame update
     void Start()
@@ -92,6 +93,7 @@ public class TerrainGen : MonoBehaviour
     void Update()
     {
         if(timer >= 1/30){
+            update = true;
             CreateShapeGPU();
             timer = 0;
         }

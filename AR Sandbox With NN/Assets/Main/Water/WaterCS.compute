@@ -11,7 +11,7 @@ float zSize;
 float dt;
 float a;
 
-float rainHeight;
+//float rainHeight;
 
 bool clearWater;
 
@@ -19,7 +19,6 @@ RWStructuredBuffer<float3> vertices;
 RWStructuredBuffer<float4> fluxMap; // x = top, y = bottom, z = left, w = right
 RWStructuredBuffer<float> depthMap;
 RWStructuredBuffer<float> heightmap;
-RWStructuredBuffer<float> heightmapRaw;
 RWTexture2D<float4> colors;
 RWTexture2D<float4> colorsTerrain;
 RWStructuredBuffer<float3> waterNormals;
