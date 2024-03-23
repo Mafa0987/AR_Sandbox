@@ -51,9 +51,12 @@ public class NeuralNetwork : MonoBehaviour
     int xSize = 300;
     int zSize = 400;
 
-    // TensorFloat test;
-    // Texture2D testTexture;
-    // ComputeBuffer testBuffer;
+    ComputeBuffer testBuffer;
+
+
+    float[] timer = new float[60];
+    int index = 0;
+    float time_sum = 0;
 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -70,7 +73,7 @@ public class NeuralNetwork : MonoBehaviour
         output = new ComputeBuffer(modelRes*modelRes*3, sizeof(float));
 
         tensorTexture = new Texture2D(modelRes, modelRes);
-        outputTexture = new RenderTexture(xSize, zSize, 24, RenderTextureFormat.ARGB32);
+        outputTexture = new RenderTexture(modelRes, modelRes, 24, RenderTextureFormat.ARGB32);
         outputTexture.enableRandomWrite = true;
         outputTexture.Create();
         
@@ -99,12 +102,6 @@ public class NeuralNetwork : MonoBehaviour
         computeShader.SetFloat("ratioX", (float)xSize/(float)modelRes);
         computeShader.SetFloat("ratioY", (float)zSize/(float)modelRes);
         computeShader.SetInt("modelRes", modelRes);
-
-
-        // test = TensorFloat.Zeros(shape);
-        // testBuffer = ComputeTensorData.Pin(test).buffer;
-        // computeShader.SetBuffer(2, "output", testBuffer);
-        // testTexture = new Texture2D(modelRes, modelRes);
     }
 
     // Update is called once per frame
@@ -115,18 +112,23 @@ public class NeuralNetwork : MonoBehaviour
 
     void SingleModel()
     {
-        //process image
         //kinectDepth = msm.GetDepthData();
-        // depthDataShort.SetData(kinectDepth);
+        //depthDataShort.SetData(kinectDepth);
         //computeShader.Dispatch(0, originalWidth*originalHeight/2/64, 1, 1);
+
+        inputTensor = TensorFloat.Zeros(shape);
+        testBuffer = ComputeTensorData.Pin(inputTensor).buffer;
+        computeShader.SetBuffer(2, "output", testBuffer);
+
         computeShader.Dispatch(1, originalWidth, originalHeight, 1);
         computeShader.Dispatch(2, modelRes/8, modelRes/8, 1);
-        output.GetData(outputArray);
+        // output.GetData(outputArray);
 
-        //run model
-        inputTensor = new TensorFloat(shape, outputArray);
+        // inputTensor = new TensorFloat(shape, outputArray);
+
         worker1.Execute(inputTensor);
         inputTensor.Dispose();
+        testBuffer.Dispose();
         TensorFloat gesture_output = worker1.PeekOutput("gesture_output") as TensorFloat;
         gesture_output.MakeReadable();
         int maxIndex = 0;
@@ -147,10 +149,13 @@ public class NeuralNetwork : MonoBehaviour
         y_cord = zSize - (int)(position_output[1] * zSize / modelRes);
         computeShader.SetInt("handX", x_cord);
         computeShader.SetInt("handY", y_cord);
-        computeShader.Dispatch(3, xSize/8, zSize/8, 1);
 
-        rawImage.texture = outputTexture;
-        
+        // computeShader.SetBuffer(3, "output", testBuffer);
+        // computeShader.Dispatch(3, modelRes/8, modelRes/8, 1);
+
+        // testTexture.Apply();
+
+        // rawImage.texture = outputTexture;
     }
 
     void OnDestroy()
@@ -161,6 +166,7 @@ public class NeuralNetwork : MonoBehaviour
         depthData?.Dispose();
         input?.Dispose();
         output?.Dispose();
+        testBuffer?.Dispose();
     }
 }
 

@@ -101,13 +101,16 @@ void Bilinear (uint3 id : SV_DispatchThreadID)
 [numthreads(8,8,1)]
 void makeTexture (uint3 id : SV_DispatchThreadID)
 {
-    int index = id.x * 3 + (inputDimY-1-id.y) * 3 * inputDimX;
-    if ((id.x - (handX*inputDimX/256))*(id.x - (handX*inputDimX/256)) + ((inputDimY-1-id.y) - handY*inputDimY/256)*((inputDimY-1-id.y) - handY*inputDimY/256) < 10)
-    {
-        outputTexture[id.xy] = float4(0, 1, 0, 1);
-    }
-    else
-    {
-        outputTexture[id.xy] = float4(input[index]/255.0, input[index + 1]/255.0, input[index + 2]/255.0, 1);
-    }
+    // int index = id.x * 3 + (inputDimY-1-id.y) * 3 * inputDimX;
+    // if ((id.x - (handX*inputDimX/256))*(id.x - (handX*inputDimX/256)) + ((inputDimY-1-id.y) - handY*inputDimY/256)*((inputDimY-1-id.y) - handY*inputDimY/256) < 10)
+    // {
+    //     outputTexture[id.xy] = float4(0, 1, 0, 1);
+    // }
+    // else
+    // {
+    //     outputTexture[id.xy] = float4(input[index]/255.0, input[index + 1]/255.0, input[index + 2]/255.0, 1);
+    // }
+
+    int index = id.x * 3 + (256-1-id.y) * 3 * 256;
+    outputTexture[id.xy] = float4(output[index]/255.0, output[index + 1]/255.0, output[index + 2]/255.0, 1);
 }
