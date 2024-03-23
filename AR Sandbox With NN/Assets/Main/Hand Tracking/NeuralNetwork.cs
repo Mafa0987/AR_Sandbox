@@ -51,6 +51,10 @@ public class NeuralNetwork : MonoBehaviour
     int xSize = 300;
     int zSize = 400;
 
+    // TensorFloat test;
+    // Texture2D testTexture;
+    // ComputeBuffer testBuffer;
+
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -95,6 +99,12 @@ public class NeuralNetwork : MonoBehaviour
         computeShader.SetFloat("ratioX", (float)xSize/(float)modelRes);
         computeShader.SetFloat("ratioY", (float)zSize/(float)modelRes);
         computeShader.SetInt("modelRes", modelRes);
+
+
+        // test = TensorFloat.Zeros(shape);
+        // testBuffer = ComputeTensorData.Pin(test).buffer;
+        // computeShader.SetBuffer(2, "output", testBuffer);
+        // testTexture = new Texture2D(modelRes, modelRes);
     }
 
     // Update is called once per frame
@@ -138,6 +148,7 @@ public class NeuralNetwork : MonoBehaviour
         computeShader.SetInt("handX", x_cord);
         computeShader.SetInt("handY", y_cord);
         computeShader.Dispatch(3, xSize/8, zSize/8, 1);
+
         rawImage.texture = outputTexture;
         
     }
