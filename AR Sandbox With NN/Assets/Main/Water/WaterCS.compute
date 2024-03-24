@@ -131,12 +131,13 @@ void WaterColor (uint3 id : SV_DispatchThreadID)
 float3 CalculateRefractionDirection(float3 normal, float3 incident, float n1, float n2)
 {
     float n = n1 / n2;
-    float cosI = dot(normal, incident);
-    float sinT2 = n * n * (1.0 - cosI * cosI);
-    if (sinT2 > 1.0)
-        return float3(0, 0, 0);
-    float cosT = sqrt(1.0 - sinT2);
-    return n * incident + (n * cosI - cosT) * normal;
+    // float cosI = dot(normal, incident);
+    // float sinT2 = n * n * (1.0 - cosI * cosI);
+    // if (sinT2 > 1.0)
+    //     return float3(0, 0, 0);
+    // float cosT = sqrt(1.0 - sinT2);
+    // return n * incident + (n * cosI - cosT) * normal;
+    return n*(cross(normal, cross(-normal, incident))-normal*sqrt(1-n*n*dot(cross(normal, incident), cross(normal, incident))));
 }
 
 float4 InterpolateTexture(float2 value, RWTexture2D<float4> _texture, int textureWidth, int textureHeight)
