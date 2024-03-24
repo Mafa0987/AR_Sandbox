@@ -51,7 +51,7 @@ public class NeuralNetwork : MonoBehaviour
     int xSize = 300;
     int zSize = 400;
 
-    ComputeBuffer tensorBuffer;
+    //ComputeBuffer tensorBuffer;
 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -99,8 +99,8 @@ public class NeuralNetwork : MonoBehaviour
         computeShader.SetInt("modelRes", modelRes);
 
         inputTensor = TensorFloat.Zeros(shape);
-        tensorBuffer = ComputeTensorData.Pin(inputTensor).buffer;
-        computeShader.SetBuffer(2, "output", tensorBuffer);
+        //tensorBuffer = ComputeTensorData.Pin(inputTensor).buffer;
+        //computeShader.SetBuffer(2, "output", tensorBuffer);
     }
 
     // Update is called once per frame
@@ -114,7 +114,8 @@ public class NeuralNetwork : MonoBehaviour
         //kinectDepth = msm.GetDepthData();
         //depthDataShort.SetData(kinectDepth);
         //computeShader.Dispatch(0, originalWidth*originalHeight/2/64, 1, 1);
-
+        var gpuTensor = ComputeTensorData.Pin(inputTensor);
+        computeShader.SetBuffer(2, "output", gpuTensor.buffer);
 
         computeShader.Dispatch(1, originalWidth, originalHeight, 1);
         computeShader.Dispatch(2, modelRes/8, modelRes/8, 1);
@@ -162,6 +163,7 @@ public class NeuralNetwork : MonoBehaviour
         depthData?.Dispose();
         input?.Dispose();
         output?.Dispose();
+        inputTensor?.Dispose();
     }
 }
 
