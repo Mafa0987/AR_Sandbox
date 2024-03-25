@@ -2,6 +2,7 @@ using UnityEngine;
 using Unity.Sentis;
 using UnityEngine.UI;
 using System;
+using Mono.Cecil.Cil;
 
 public class NeuralNetwork : MonoBehaviour
 {
@@ -51,9 +52,6 @@ public class NeuralNetwork : MonoBehaviour
     int xSize = 300;
     int zSize = 400;
 
-    //ComputeBuffer tensorBuffer;
-
-
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -99,8 +97,6 @@ public class NeuralNetwork : MonoBehaviour
         computeShader.SetInt("modelRes", modelRes);
 
         inputTensor = TensorFloat.Zeros(shape);
-        //tensorBuffer = ComputeTensorData.Pin(inputTensor).buffer;
-        //computeShader.SetBuffer(2, "output", tensorBuffer);
     }
 
     // Update is called once per frame
@@ -163,7 +159,6 @@ public class NeuralNetwork : MonoBehaviour
         depthData?.Dispose();
         input?.Dispose();
         output?.Dispose();
-        inputTensor?.Dispose();
     }
 }
 

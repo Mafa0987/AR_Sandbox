@@ -244,5 +244,6 @@ public class Water : MonoBehaviour
         heightmapBuffer.Release();
         heightmapRawBuffer.Release();
         depthMapBuffer.Release();
+        waterNormals.Release();
     }
 }
