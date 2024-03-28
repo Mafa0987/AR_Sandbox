@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine;
 
 public class AnimalController : MonoBehaviour
@@ -8,21 +9,34 @@ public class AnimalController : MonoBehaviour
     public Transform[] deer;
     public TerrainGen terrain;
     public Calibration calibration;
+    public NeuralNetwork nn;
     float height;
     int[] fishRotateVal;
     int[] deerRotateVal;
+    float[] survivalTimerFish;
+    float[] survivalTimerDeer;
+    bool[] deadFish;
+    bool[] deadDeer;
     // Start is called before the first frame update
     void Start()
     {
         fishRotateVal = new int[fish.Length];
         deerRotateVal = new int[deer.Length];
+        survivalTimerFish = new float[fish.Length];
+        survivalTimerDeer = new float[deer.Length];
+        deadFish = new bool[fish.Length];
+        deadDeer = new bool[deer.Length];
         for (int i = 0; i < fish.Length; i++)
         {
-            fish[i].localPosition = new Vector3(100, 1000, 200);
+            int x = Random.Range(0, terrain.xSize);
+            int z = Random.Range(0, terrain.zSize);
+            fish[i].localPosition = new Vector3(x, 1000, z);
         }
         for (int i = 0; i < deer.Length; i++)
         {
-            deer[i].localPosition = new Vector3(170, 1000, 350);
+            int x = Random.Range(0, terrain.xSize);
+            int z = Random.Range(0, terrain.zSize);
+            deer[i].localPosition = new Vector3(x, 1000, z);
         }
     }
 
@@ -31,17 +45,36 @@ public class AnimalController : MonoBehaviour
     {
         for (int i = 0; i < fish.Length; i++)
         {
-            MoveAnimal(fish[i], 0.45f, 0f, ref fishRotateVal[i]);
+            MoveAnimal(fish[i], 0.45f, 0f, ref fishRotateVal[i], ref survivalTimerFish[i], ref deadFish[i]);
         }   
         for (int i = 0; i < deer.Length; i++)
         {
-            MoveAnimal(deer[i], 1f, 0.5f, ref deerRotateVal[i]);
+            MoveAnimal(deer[i], 1f, 0.5f, ref deerRotateVal[i], ref survivalTimerDeer[i], ref deadDeer[i]);
         }
     }
 
-    void MoveAnimal(Transform animal, float upperLim, float lowerLim, ref int rotateVal)
+    void MoveAnimal(Transform animal, float upperLim, float lowerLim, ref int rotateVal, ref float survivalTimer, ref bool dead)
     {
         float currentHeight = terrain.heightmap[Mathf.RoundToInt(animal.localPosition.x) + terrain.xSize * Mathf.RoundToInt(animal.localPosition.z)];
+        float currentHeightNorm = (currentHeight - calibration.minTerrainHeight) / (calibration.maxTerrainHeight - calibration.minTerrainHeight);
+        if (currentHeightNorm < lowerLim || currentHeightNorm > upperLim)
+        {
+            survivalTimer += Time.deltaTime;
+            dead = survivalTimer >= 5;
+        }
+        else
+        {
+            if (dead)
+                animal.localScale = new Vector3(25, 25, 25);
+            dead = false;
+            survivalTimer = 0;
+        }
+        if (dead)
+        {
+            animal.localScale = new Vector3(0, 0, 0);
+            return;
+        }
+        animal.localScale = new Vector3(25, 25, 25);       
         Vector3 rotation = animal.forward;
         Vector3 nextStep = animal.localPosition + rotation * Time.deltaTime * 20f;
         Vector3Int nextLook = Vector3Int.RoundToInt(animal.localPosition + rotation * 20);
@@ -55,6 +88,16 @@ public class AnimalController : MonoBehaviour
         height = (height - calibration.minTerrainHeight) / (calibration.maxTerrainHeight-calibration.minTerrainHeight);
         if (height < upperLim && height > lowerLim)
         {
+            if (nn.predictedLabel != "No Hand")
+            {
+                Vector3 targetDirection = new Vector3(animal.localPosition.x - nn.x_cord, animal.forward.y, animal.localPosition.z - nn.y_cord);
+                if (targetDirection.magnitude < 0.1)
+                {
+                    Vector3 newDirection = Vector3.RotateTowards(animal.forward, targetDirection, 100 * Time.deltaTime, 0.0f);
+                    animal.localRotation = Quaternion.LookRotation(newDirection);
+                    return;
+                }
+            }
             rotateVal = 0;
             animal.localPosition = nextStep;
             animal.position = new Vector3(animal.position.x, currentHeight, animal.position.z);

@@ -59,7 +59,7 @@ public class Water : MonoBehaviour
         //     AddBump();
         // }
         UpdateHeights();
-        UpdateMesh();
+        //UpdateMesh();
         if (clearWater)
         {
             clearWater = false;
@@ -106,7 +106,7 @@ public class Water : MonoBehaviour
         //}
         WaterCS.Dispatch(0, 512/8, 424/8, 1);
         WaterCS.Dispatch(1, 512/8, 424/8, 1);
-        verticesBuffer.GetData(vertices);
+        //verticesBuffer.GetData(vertices);
         WaterCS.Dispatch(3, 512/8, 424/8, 1);
     }
 
