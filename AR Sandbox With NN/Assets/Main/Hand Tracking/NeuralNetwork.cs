@@ -92,8 +92,8 @@ public class NeuralNetwork : MonoBehaviour
         computeShader.SetInt("inputDimY", zSize);
         computeShader.SetInt("xCutL", xCutL);
         computeShader.SetInt("zCutB", xCutB);
-        computeShader.SetFloat("ratioX", (float)xSize/(float)modelRes);
-        computeShader.SetFloat("ratioY", (float)zSize/(float)modelRes);
+        computeShader.SetFloat("ratioX", (float)(xSize-1)/(float)(modelRes-1));
+        computeShader.SetFloat("ratioY", (float)(zSize-1)/(float)(modelRes-1));
         computeShader.SetInt("modelRes", modelRes);
 
         inputTensor = TensorFloat.Zeros(shape);
