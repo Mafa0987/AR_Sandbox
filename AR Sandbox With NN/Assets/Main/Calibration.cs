@@ -150,7 +150,7 @@ public class Calibration : MonoBehaviour
 
         if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.UpArrow))
         {
-            terrainpos.transform.localScale += new Vector3(0, 0, scaleSpeed);
+            //terrainpos.transform.localScale += new Vector3(0, 0, scaleSpeed);
         }
         else if (Input.GetKey(KeyCode.UpArrow))
         {
@@ -159,7 +159,7 @@ public class Calibration : MonoBehaviour
 
         if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.DownArrow))
         {
-            terrainpos.transform.localScale += new Vector3(0, 0, -scaleSpeed);
+            //terrainpos.transform.localScale += new Vector3(0, 0, -scaleSpeed);
         }
         else if (Input.GetKey(KeyCode.DownArrow))
         {
