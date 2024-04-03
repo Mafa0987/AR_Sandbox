@@ -91,10 +91,14 @@ public class AnimalController : MonoBehaviour
             if (nn.predictedLabel != "No Hand")
             {
                 Vector3 targetDirection = new Vector3(animal.localPosition.x - nn.x_cord, animal.forward.y, animal.localPosition.z - nn.y_cord);
-                if (targetDirection.magnitude < 0.1)
+                if (targetDirection.magnitude < 100.0)
                 {
                     Vector3 newDirection = Vector3.RotateTowards(animal.forward, targetDirection, 100 * Time.deltaTime, 0.0f);
                     animal.localRotation = Quaternion.LookRotation(newDirection);
+                    rotateVal = 0;
+                    animal.localPosition = nextStep;
+                    animal.position = new Vector3(animal.position.x, currentHeight, animal.position.z);
+                    animal.eulerAngles = new Vector3(animal.eulerAngles.x, animal.eulerAngles.y + Random.Range(-100 * Time.deltaTime, 100 * Time.deltaTime), animal.eulerAngles.z);
                     return;
                 }
             }
