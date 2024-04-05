@@ -2194,7 +2194,7 @@ Transform:
   m_GameObject: {fileID: 963194225}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 250, y: 1100, z: 212}
+  m_LocalPosition: {x: 250, y: 900, z: 212}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2846,7 +2846,7 @@ MonoBehaviour:
   terrain: {fileID: 847163006}
   xSize: 512
   zSize: 424
-  c: 500
+  c: 250
   a: 1
   WaterCS: {fileID: 7200000, guid: 4b8ba5bbfd384724d96414db903c62a0, type: 3}
   normals: []
@@ -2879,7 +2879,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09f88ba7bd3b19546a08a48f6892ee2d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  modelAsset1: {fileID: 5022602860645237092, guid: 3680343ae6ba0d644a2736b3f145151d, type: 3}
+  modelAsset1: {fileID: 5022602860645237092, guid: 2ca12f996d9bb58479f6a3644207bd1d, type: 3}
   modelAsset2: {fileID: 5022602860645237092, guid: 0ca821b99854828499a52dabc6aa1bca, type: 3}
   predictedLabel: 
   probability: 0

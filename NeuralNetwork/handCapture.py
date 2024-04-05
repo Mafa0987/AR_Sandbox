@@ -8,6 +8,7 @@ from PIL import Image
 from cvzone.HandTrackingModule import HandDetector
 from PIL import Image
 from matplotlib import cm
+import os
 
 def processDepthData(depthData):
     width = 512
@@ -37,43 +38,44 @@ def GetColor(depthData):
 def Lerp(color1, color2, t):
     return (color2 - color1) * np.expand_dims(t, axis=-1) + color1
 
-topLeftx = 660
+topLeftx = 627
 topLefty = 5
 bottomRightx = 1480
-bottomRighty = 1080
-
-def on_trackbar1(val):
-    global topLeftx
-    topLeftx = val
-
-def on_trackbar2(val):
-    global topLefty
-    topLefty = val
-
-def on_trackbar3(val):
-    global bottomRightx
-    bottomRightx = val
-
-def on_trackbar4(val):
-    global bottomRighty
-    bottomRighty = val
+bottomRighty = 911
 
 rate = 0
-number = 0
+number = 750
 depthFrame = np.zeros((400, 300, 3), dtype=np.uint8)
 
 def draw_circle(event,x,y,flags,param):
     print(x,y)
 
-cv2.namedWindow('trackbarWindow')
-cv2.createTrackbar("topleftx", "trackbarWindow" , 0, 1920, on_trackbar1)
-cv2.createTrackbar("topLefty", "trackbarWindow" , 0, 1080, on_trackbar2)
-cv2.createTrackbar("bottomRightx", "trackbarWindow" , 0, 1920, on_trackbar3)
-cv2.createTrackbar("bottomRighty", "trackbarWindow" , 0, 1080, on_trackbar4)
-cv2.setTrackbarPos("topleftx", "trackbarWindow", 660)
-cv2.setTrackbarPos("topLefty", "trackbarWindow", 5)
-cv2.setTrackbarPos("bottomRightx", "trackbarWindow", 1480)
-cv2.setTrackbarPos("bottomRighty", "trackbarWindow", 1080)
+
+# def on_trackbar1(val):
+#     global topLeftx
+#     topLeftx = val
+
+# def on_trackbar2(val):
+#     global topLefty
+#     topLefty = val
+
+# def on_trackbar3(val):
+#     global bottomRightx
+#     bottomRightx = val
+
+# def on_trackbar4(val):
+#     global bottomRighty
+#     bottomRighty = val
+
+# cv2.namedWindow('trackbarWindow')
+# cv2.createTrackbar("topleftx", "trackbarWindow" , 0, 1920, on_trackbar1)
+# cv2.createTrackbar("topLefty", "trackbarWindow" , 0, 1080, on_trackbar2)
+# cv2.createTrackbar("bottomRightx", "trackbarWindow" , 0, 1920, on_trackbar3)
+# cv2.createTrackbar("bottomRighty", "trackbarWindow" , 0, 1080, on_trackbar4)
+# cv2.setTrackbarPos("topleftx", "trackbarWindow", 660)
+# cv2.setTrackbarPos("topLefty", "trackbarWindow", 5)
+# cv2.setTrackbarPos("bottomRightx", "trackbarWindow", 1480)
+# cv2.setTrackbarPos("bottomRighty", "trackbarWindow", 911)
 
 run = False
 
@@ -91,27 +93,30 @@ while(True):
         depth = cv2.flip(depth, 0)
         depth = np.uint8(depth * 255)
         depthCopy = depth.copy()
-        # if len(hand) > 0:
-        #     points = np.array(hand[0]['lmList'])
-        #     midx = (np.clip(int(points[0][0]), 0, 1920) + np.clip(int(points[5][0]), 0, 1920) + np.clip(int(points[17][0]), 0, 1920) + np.clip(points[1][0], 0, 1920))  // 4
-        #     midy = (np.clip(int(points[0][1]), 0, 1080) + np.clip(int(points[5][1]), 0, 1080) + np.clip(int(points[17][1]), 0, 1080) + np.clip(points[1][1], 0, 1080)) // 4
-        #     cv2.circle(color, (midx, midy), 15, (0, 255, 0), cv2.FILLED)
-        #     depthx = int(np.clip((midx - topLeftx) / (bottomRightx - topLeftx) * 299, 0, 299))
-        #     depthy = int(np.clip((midy - topLefty) / (bottomRighty - topLefty) * 399, 0, 399))
-        #     depthy = 399 - depthy
-        #     for i in range(depthy-5, depthy+5):
-        #         for j in range(depthx-5, depthx+5):
-        #             if i >= 0 and i < 400 and j >= 0 and j < 300:
-        #                 depthCopy[i, j] = [0, 255, 0]
+        if len(hand) > 0:
+            points = np.array(hand[0]['lmList'])
+            midx = (np.clip(int(points[0][0]), 0, 1920) + np.clip(int(points[5][0]), 0, 1920) + np.clip(int(points[17][0]), 0, 1920) + np.clip(points[1][0], 0, 1920))  // 4
+            midy = (np.clip(int(points[0][1]), 0, 1080) + np.clip(int(points[5][1]), 0, 1080) + np.clip(int(points[17][1]), 0, 1080) + np.clip(points[1][1], 0, 1080)) // 4
+            cv2.circle(color, (midx, midy), 15, (0, 255, 0), cv2.FILLED)
+            depthx = int(np.clip((midx - topLeftx) / (bottomRightx - topLeftx) * 290, 0, 299))
+            depthy = int(np.clip((midy - topLefty) / (bottomRighty - topLefty) * 320, 0, 399))
+            depthy = 399 - depthy
+            for i in range(depthy-5, depthy+5):
+                for j in range(depthx-5, depthx+5):
+                    if i >= 0 and i < 400 and j >= 0 and j < 300:
+                        depthCopy[i, j] = [0, 255, 0]
         if run:
             if rate > 1:
                 rate = 0
-                f = open(f"C:/Users/mkf99/AR_Sandbox/NeuralNetwork/Data/PNG_A/Positions/NoHand/{number}.txt", "x")
-                #f.write(str(depthx) + " " + str(depthy))
-                f.write(str(-1) + " " + str(-1))
-                cv2.imwrite(f"C:/Users/mkf99/AR_Sandbox/NeuralNetwork/Data/PNG_A/Images/NoHand/{number}.png", depth)
+                if os.path.exists(f"C:/Users/mkf99/AR_Sandbox/NeuralNetwork/Data/PNG_A/Images/ClosedHand/{number}.png"):
+                    print("File already exists")
+                    break
+                f = open(f"C:/Users/mkf99/AR_Sandbox/NeuralNetwork/Data/PNG_A/Positions/ClosedHand/{number}.txt", "x")
+                f.write(str(depthx) + " " + str(depthy))
+                #f.write(str(-1) + " " + str(-1))
+                cv2.imwrite(f"C:/Users/mkf99/AR_Sandbox/NeuralNetwork/Data/PNG_A/Images/ClosedHand/{number}.png", depth)
                 f.close()
-                if number == 499:
+                if number == 750+249:
                     break
                 else:
                     number += 1
@@ -119,9 +124,7 @@ while(True):
             else:
                 rate += 1
         cv2.imshow('image', depthCopy)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-        elif cv2.waitKey(1) & 0xFF == ord('r'):
+        if cv2.waitKey(1) & 0xFF == ord('r'):
             run = not run
 
 

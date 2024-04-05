@@ -58,9 +58,10 @@ void ColorMapping (uint3 id : SV_DispatchThreadID)
     if (id.x >= inputDimX || id.y >= inputDimY)
         return;
     float depth = clamp(depthData[id.x + xCutL + (id.y + zCutB)*512] / 4500.0, 0, 1);
-    input[id.x*3 + (inputDimY-1-id.y)*3*inputDimX] = GetColor(depth).x*255.0;
-    input[id.x*3 + (inputDimY-1-id.y)*3*inputDimX + 1] = GetColor(depth).y*255.0;
-    input[id.x*3 + (inputDimY-1-id.y)*3*inputDimX + 2] = GetColor(depth).z*255.0;
+    float3 color = GetColor(depth);
+    input[id.x*3 + (inputDimY-1-id.y)*3*inputDimX] = color.x;
+    input[id.x*3 + (inputDimY-1-id.y)*3*inputDimX + 1] = color.y;
+    input[id.x*3 + (inputDimY-1-id.y)*3*inputDimX + 2] = color.z;
 }
 
 // Bilinear Interpolation

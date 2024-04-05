@@ -123,7 +123,7 @@ public class TerrainGen : MonoBehaviour
         //Cuts heightmap and converts to float
         computeShader.Dispatch(3, 512/8, 424/8, 1);
         heightBuffer.GetData(heightmap);
-        heightmapRawBuffer.GetData(heightmapRaw);
+        //heightmapRawBuffer.GetData(heightmapRaw);
 
         //Rest of the calculations
         minTerrainHeight = calibration.minTerrainHeight;
