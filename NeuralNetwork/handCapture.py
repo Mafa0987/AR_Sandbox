@@ -44,7 +44,7 @@ bottomRightx = 1480
 bottomRighty = 911
 
 rate = 0
-number = 750
+number = 0
 depthFrame = np.zeros((400, 300, 3), dtype=np.uint8)
 
 def draw_circle(event,x,y,flags,param):
@@ -108,15 +108,15 @@ while(True):
         if run:
             if rate > 1:
                 rate = 0
-                if os.path.exists(f"C:/Users/mkf99/AR_Sandbox/NeuralNetwork/Data/PNG_A/Images/ClosedHand/{number}.png"):
+                if os.path.exists(f"C:/Users/mkf99/AR_Sandbox/TestData/Images/ClosedHand/{number}.png"):
                     print("File already exists")
                     break
-                f = open(f"C:/Users/mkf99/AR_Sandbox/NeuralNetwork/Data/PNG_A/Positions/ClosedHand/{number}.txt", "x")
+                f = open(f"C:/Users/mkf99/AR_Sandbox/NeuralNetwork/TestData/Positions/ClosedHand/{number}.txt", "x")
                 f.write(str(depthx) + " " + str(depthy))
                 #f.write(str(-1) + " " + str(-1))
-                cv2.imwrite(f"C:/Users/mkf99/AR_Sandbox/NeuralNetwork/Data/PNG_A/Images/ClosedHand/{number}.png", depth)
+                cv2.imwrite(f"C:/Users/mkf99/AR_Sandbox/NeuralNetwork/TestData/Images/ClosedHand/{number}.png", depth)
                 f.close()
-                if number == 750+249:
+                if number == 499:
                     break
                 else:
                     number += 1
