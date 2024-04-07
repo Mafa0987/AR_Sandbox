@@ -108,13 +108,13 @@ while(True):
         if run:
             if rate > 1:
                 rate = 0
-                if os.path.exists(f"C:/Users/mkf99/AR_Sandbox/TestData/Images/ClosedHand/{number}.png"):
+                if os.path.exists(f"C:/Users/mkf99/AR_Sandbox/TestData/Images/NoHand/{number}.png"):
                     print("File already exists")
                     break
-                f = open(f"C:/Users/mkf99/AR_Sandbox/NeuralNetwork/TestData/Positions/ClosedHand/{number}.txt", "x")
-                f.write(str(depthx) + " " + str(depthy))
-                #f.write(str(-1) + " " + str(-1))
-                cv2.imwrite(f"C:/Users/mkf99/AR_Sandbox/NeuralNetwork/TestData/Images/ClosedHand/{number}.png", depth)
+                f = open(f"C:/Users/mkf99/AR_Sandbox/NeuralNetwork/TestData/Positions/NoHand/{number}.txt", "x")
+                #f.write(str(depthx) + " " + str(depthy))
+                f.write(str(0) + " " + str(0))
+                cv2.imwrite(f"C:/Users/mkf99/AR_Sandbox/NeuralNetwork/TestData/Images/NoHand/{number}.png", depth)
                 f.close()
                 if number == 499:
                     break
