@@ -8,6 +8,7 @@ public class AnimalController : MonoBehaviour
     public Transform[] fish;
     public Transform[] deer;
     public TerrainGen terrain;
+    public Transform terrainTransform;
     public Calibration calibration;
     public NeuralNetwork nn;
     float height;
@@ -72,6 +73,7 @@ public class AnimalController : MonoBehaviour
         if (dead)
         {
             animal.localScale = new Vector3(0, 0, 0);
+            AdjustPosition(animal);
             return;
         }
         animal.localScale = new Vector3(25, 25, 25);       
@@ -82,6 +84,7 @@ public class AnimalController : MonoBehaviour
         if (outOfBounds)
         {
             animal.eulerAngles = new Vector3(animal.eulerAngles.x, animal.eulerAngles.y + 180, animal.eulerAngles.z);
+            AdjustPosition(animal);
             return;
         }
         height = terrain.heightmap[nextLook.x + terrain.xSize * nextLook.z];
@@ -99,6 +102,7 @@ public class AnimalController : MonoBehaviour
                     animal.localPosition = nextStep;
                     animal.position = new Vector3(animal.position.x, currentHeight, animal.position.z);
                     animal.eulerAngles = new Vector3(animal.eulerAngles.x, animal.eulerAngles.y + Random.Range(-100 * Time.deltaTime, 100 * Time.deltaTime), animal.eulerAngles.z);
+                    AdjustPosition(animal);
                     return;
                 }
             }
@@ -106,6 +110,7 @@ public class AnimalController : MonoBehaviour
             animal.localPosition = nextStep;
             animal.position = new Vector3(animal.position.x, currentHeight, animal.position.z);
             animal.eulerAngles = new Vector3(animal.eulerAngles.x, animal.eulerAngles.y + Random.Range(-100 * Time.deltaTime, 100 * Time.deltaTime), animal.eulerAngles.z);
+            AdjustPosition(animal);
             return;
         }
         else
@@ -117,16 +122,19 @@ public class AnimalController : MonoBehaviour
             if (outOfBoundsLeft && outOfBoundsRight)
             {
                 animal.eulerAngles = new Vector3(animal.eulerAngles.x, animal.eulerAngles.y + 180, animal.eulerAngles.z);
+                AdjustPosition(animal);
                 return;
             }
             else if (outOfBoundsLeft)
             {
                 animal.eulerAngles = new Vector3(animal.eulerAngles.x, animal.eulerAngles.y + 100 * Time.deltaTime, animal.eulerAngles.z);
+                AdjustPosition(animal);
                 return;
             }
             else if (outOfBoundsRight)
             {
                 animal.eulerAngles = new Vector3(animal.eulerAngles.x, animal.eulerAngles.y - 100 * Time.deltaTime, animal.eulerAngles.z);
+                AdjustPosition(animal);
                 return;
             }
             float heightLeft = terrain.heightmap[Mathf.RoundToInt(nextLookLeft.x) + terrain.xSize * Mathf.RoundToInt(nextLookLeft.z)];
@@ -141,5 +149,24 @@ public class AnimalController : MonoBehaviour
             animal.localPosition = nextStep2;
             animal.eulerAngles = new Vector3(animal.eulerAngles.x, animal.eulerAngles.y + rotateVal * Time.deltaTime, animal.eulerAngles.z);
         }
+        AdjustPosition(animal);
+    }
+
+    void AdjustPosition(Transform animal)
+    {
+        int x1 = (int)Mathf.Floor(animal.localPosition.x);
+        int z1 = (int)Mathf.Floor(animal.localPosition.z);
+        int x2 = Mathf.Min(x1 + 1, terrain.xSize - 1);
+        int z2 = Mathf.Min(z1 + 1, terrain.zSize - 1);
+        Vector3 pos00 = terrain.vertices[x1 + z1 * terrain.xSize];
+        Vector3 pos10 = terrain.vertices[x2 + z1 * terrain.xSize];
+        Vector3 pos01 = terrain.vertices[x1 + z2 * terrain.xSize];
+        Vector3 pos11 = terrain.vertices[x2 + z2 * terrain.xSize];
+        Vector3 pos0 = Vector3.Lerp(pos00, pos10, animal.localPosition.x - x1);
+        Vector3 pos1 = Vector3.Lerp(pos01, pos11, animal.localPosition.x - x1);
+        Vector3 pos = Vector3.Lerp(pos0, pos1, animal.localPosition.z - z1);
+        Vector3 worldPos = terrainTransform.TransformPoint(pos);
+        Transform rig = animal.GetChild(0);
+        rig.position = worldPos;
     }
 }

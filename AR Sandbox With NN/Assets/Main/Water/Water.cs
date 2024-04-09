@@ -136,6 +136,8 @@ public class Water : MonoBehaviour
         waterNormals = new ComputeBuffer(vertices.Length, sizeof(float) * 3);
 
         WaterCS.SetBuffer(0, "vertices", verticesBuffer);
+        WaterCS.SetBuffer(1, "terrainVertices", terrain.verticesBuffer);
+        WaterCS.SetBuffer(2, "terrainVertices", terrain.verticesBuffer);
         WaterCS.SetBuffer(1, "vertices", verticesBuffer);
         WaterCS.SetBuffer(0, "fluxMap", fluxMapBuffer);
         WaterCS.SetBuffer(1, "fluxMap", fluxMapBuffer);

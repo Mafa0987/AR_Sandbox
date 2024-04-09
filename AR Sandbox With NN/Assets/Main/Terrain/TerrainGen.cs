@@ -18,10 +18,10 @@ public class TerrainGen : MonoBehaviour
     public RenderTexture colors;
     public MultiSourceManager msm;
     Mesh mesh;
-    Vector3[] vertices;
+    public Vector3[] vertices;
     Vector2[] uvs;
     int[] triangles;
-    ComputeBuffer verticesBuffer;
+    public ComputeBuffer verticesBuffer;
     public ComputeBuffer heightBuffer;
 
     public Slider minTerrainSlider;
@@ -32,7 +32,7 @@ public class TerrainGen : MonoBehaviour
     //test average noise reduction
     ComputeBuffer averageBuffer;
     int N = 512 * 424;
-    int num_arrays = 30;
+    int num_arrays = 60;
     int sampleIndex = 0;
     ComputeBuffer sampleSums;
     ComputeBuffer squaredSums;
@@ -130,6 +130,9 @@ public class TerrainGen : MonoBehaviour
         maxTerrainHeight = calibration.maxTerrainHeight;
         computeShader.SetFloat("maxTerrainHeight", maxTerrainHeight);
         computeShader.SetFloat("minTerrainHeight", minTerrainHeight);
+        computeShader.SetFloat("depthShiftx", calibration.depthShiftx);
+        computeShader.SetFloat("depthShifty", calibration.depthShifty);
+        computeShader.SetFloat("centerY", calibration.centerY);
 
         computeShader.Dispatch(0, 512/8, 424/8, 1);
         //verticesBuffer.GetData(vertices);

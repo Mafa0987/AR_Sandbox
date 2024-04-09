@@ -16,6 +16,7 @@ float a;
 bool clearWater;
 
 RWStructuredBuffer<float3> vertices;
+RWStructuredBuffer<float3> terrainVertices;
 RWStructuredBuffer<float4> fluxMap; // x = top, y = bottom, z = left, w = right
 RWStructuredBuffer<float> depthMap;
 RWStructuredBuffer<float> heightmap;
@@ -100,7 +101,9 @@ void UpdateHeights (uint3 id : SV_DispatchThreadID)
     float deltavolume = influx - outflux;
 
     depthMap[vert] += dt * deltavolume / a;
-    vertices[vert].y = depthMap[vert] + heightmap[vert] - 0.1;
+    //vertices[vert].y = depthMap[vert] + heightmap[vert] - 0.1;
+    float columnHeight = depthMap[vert] + heightmap[vert] - 0.1;
+    vertices[vert] = float3(terrainVertices[vert].x, columnHeight, terrainVertices[vert].z);
 
     if (clearWater)
     {
@@ -115,7 +118,9 @@ void UpdatePlane (uint3 id : SV_DispatchThreadID)
         return;
 
     int vert = id.x + id.y * xSize;
-    vertices[vert].y = depthMap[vert] + heightmap[vert] - 0.1;
+    //vertices[vert].y = depthMap[vert] + heightmap[vert] - 0.1;
+    float columnHeight = depthMap[vert] + heightmap[vert] - 0.1;
+    vertices[vert] = float3(terrainVertices[vert].x, columnHeight, terrainVertices[vert].z);
 }
 
 [numthreads(8,8,1)]
