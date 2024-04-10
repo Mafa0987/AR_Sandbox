@@ -131,8 +131,20 @@ public class TerrainGen : MonoBehaviour
         computeShader.SetFloat("maxTerrainHeight", maxTerrainHeight);
         computeShader.SetFloat("minTerrainHeight", minTerrainHeight);
         computeShader.SetFloat("depthShiftx", calibration.depthShiftx);
+        computeShader.SetFloat("indexShiftx", calibration.indexShiftx);
+        computeShader.SetFloat("centerX", calibration.centerX);
         computeShader.SetFloat("depthShifty", calibration.depthShifty);
+        computeShader.SetFloat("indexShifty", calibration.indexShifty);
         computeShader.SetFloat("centerY", calibration.centerY);
+        // computeShader.SetFloats("shift00", calibration.shift00);
+        // computeShader.SetFloats("shift01", calibration.shift01);
+        // computeShader.SetFloats("shift10", calibration.shift10);
+        // computeShader.SetFloats("shift11", calibration.shift11);
+        computeShader.SetFloats("shift00", calibration.depthDisplacementArray[0]);
+        computeShader.SetFloats("shift10", calibration.depthDisplacementArray[1]);
+        computeShader.SetFloats("shift01", calibration.depthDisplacementArray[2]);
+        computeShader.SetFloats("shift11", calibration.depthDisplacementArray[3]);
+        
 
         computeShader.Dispatch(0, 512/8, 424/8, 1);
         //verticesBuffer.GetData(vertices);

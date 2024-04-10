@@ -5,6 +5,7 @@ using UnityEditor.SearchService;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using UnityEditor.SpeedTree.Importer;
 
 public class Calibration : MonoBehaviour
 {
@@ -32,15 +33,34 @@ public class Calibration : MonoBehaviour
     public float rainOffset = 0f;
     public float rainHeight = 10;
     public float depthShiftx = 0;
+    public float indexShiftx = 0;
+    public float centerX = 0;
     public float depthShifty = 0;
+    public float indexShifty = 0;
     public float centerY = 0;
+    // public float[] shift00;
+    // public float[] shift10;
+    // public float[] shift01;
+    // public float[] shift11;
+    public float[][] depthDisplacementArray;
     public Vector2Int xCut = new Vector2Int(0, 0);
     public Vector2Int zCut = new Vector2Int(0, 0);
     Vector2Int xCutNew = new Vector2Int(0, 0);
     Vector2Int zCutNew = new Vector2Int(0, 0);
     // Start is called before the first frame update
+
+    Vector3 screenPosition;
+    float minIndex;
+    float[] oldShift;
     void Start()
     {
+        // shift00 = new float[2];
+        // shift10 = new float[2];
+        // shift01 = new float[2];
+        // shift11 = new float[2];
+        depthDisplacementArray = new float[][]{new float[2], new float[2], new float[2], new float[2]};
+
+
         ui = GameObject.Find("UI");
         Camera = GameObject.Find("Main Camera").transform;
         line1 = GameObject.Find("Line1").GetComponent<LineRenderer>();
@@ -165,6 +185,40 @@ public class Calibration : MonoBehaviour
         }
         rainHeight = maxTerrainHeight + rainOffset;
         CalibrateTransform();
+
+        if (Input.GetMouseButtonDown(0) && Input.GetKey(KeyCode.LeftShift))
+        {
+            screenPosition = Input.mousePosition;
+            Vector3 worldPosition = Camera.GetComponent<Camera>().ScreenToWorldPoint(screenPosition);
+            Vector3 terrainPosition = terrainpos.transform.InverseTransformPoint(worldPosition);
+            Vector3[] vertices = terrainpos.GetComponent<TerrainGen>().vertices;
+            Vector3[] corners = new Vector3[4];
+            corners[0] = vertices[0];
+            corners[1] = vertices[terrainpos.GetComponent<TerrainGen>().xSize - 1];
+            corners[2] = vertices[terrainpos.GetComponent<TerrainGen>().xSize * (terrainpos.GetComponent<TerrainGen>().zSize - 1)];
+            corners[3] = vertices[terrainpos.GetComponent<TerrainGen>().xSize * terrainpos.GetComponent<TerrainGen>().zSize - 1];
+            float minDist = float.MaxValue;
+            for (int k = 0; k < 4; k++)
+            {
+                float distance = Vector3.Distance(terrainPosition, corners[k]);
+                if (distance < minDist)
+                {
+                    minDist = distance;
+                    minIndex = k;
+                    oldShift = (float[])depthDisplacementArray[k].Clone();
+                }
+            }
+        }
+
+        if (Input.GetMouseButton(0) && Input.GetKey(KeyCode.LeftShift))
+        {
+            Vector3 screenPositionNew = Input.mousePosition;
+            float diffX = screenPositionNew.x - screenPosition.x;
+            float diffY = screenPositionNew.y - screenPosition.y;
+            depthDisplacementArray[(int)minIndex][0] = oldShift[0] + diffY/100;
+            depthDisplacementArray[(int)minIndex][1] = oldShift[1] - diffX/100;
+        }
+
     }
 
     void DrawRectangle()

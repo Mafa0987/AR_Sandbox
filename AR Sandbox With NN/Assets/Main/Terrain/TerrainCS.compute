@@ -24,8 +24,15 @@ int N;
 int num_arrays;
 int sampleIndex;
 float depthShiftx;
+float indexShiftx;
+float centerX;
 float depthShifty;
+float indexShifty;
 float centerY;
+float2 shift00;
+float2 shift10;
+float2 shift01;
+float2 shift11;
 
 // static float4 Blue = float4(0, 0, 1, 1);
 // static float4 Green = float4(0.25, 0.5, 0.25, 1);
@@ -139,7 +146,17 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     int vert = id.x+id.y*(xSize);
     float height = heightmap[vert];
-    vertices[vert] = float3(id.x + (minTerrainHeight-height)*depthShiftx, height, id.y+(minTerrainHeight-height)*depthShifty*-(id.y-centerY));
+    float heightDiff = minTerrainHeight - height;
+    // float x = id.x + heightDiff*depthShiftx + heightDiff*indexShiftx*(id.x-centerX);
+    // float z = id.y + heightDiff*depthShifty + heightDiff*indexShifty*(id.y-centerY);
+
+    float2 shift0 = lerp(shift00, shift10, (float)id.x/(xSize-1));
+    float2 shift1 = lerp(shift01, shift11, (float)id.x/(xSize-1));
+    float2 shift = lerp(shift0, shift1, (float)id.y/(zSize-1));
+    float x = id.x + shift.x * -heightDiff;
+    float z = id.y + shift.y * -heightDiff;
+
+    vertices[vert] = float3(x, height, z);
 
     float height_norm = norm(height);
 
