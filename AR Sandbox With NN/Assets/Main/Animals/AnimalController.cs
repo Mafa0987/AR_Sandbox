@@ -50,7 +50,7 @@ public class AnimalController : MonoBehaviour
         }   
         for (int i = 0; i < deer.Length; i++)
         {
-            MoveAnimal(deer[i], 1f, 0.5f, ref deerRotateVal[i], ref survivalTimerDeer[i], ref deadDeer[i]);
+            MoveAnimal(deer[i], 0.7f, 0.5f, ref deerRotateVal[i], ref survivalTimerDeer[i], ref deadDeer[i]);
         }
     }
 
@@ -119,30 +119,24 @@ public class AnimalController : MonoBehaviour
             Vector3Int nextLookRight = Vector3Int.RoundToInt(nextLook + animal.right * 10);
             bool outOfBoundsLeft = nextLookLeft.x >= terrain.xSize || nextLookLeft.z >= terrain.zSize || nextLookLeft.x <= 0 || nextLookLeft.z <= 0;
             bool outOfBoundsRight = nextLookRight.x >= terrain.xSize || nextLookRight.z >= terrain.zSize || nextLookRight.x <= 0 || nextLookRight.z <= 0;
-            if (outOfBoundsLeft && outOfBoundsRight)
-            {
-                animal.eulerAngles = new Vector3(animal.eulerAngles.x, animal.eulerAngles.y + 180, animal.eulerAngles.z);
-                AdjustPosition(animal);
-                return;
+            bool leftWater;
+            bool rightWater;
+            if (!outOfBoundsLeft){
+                float heightLeft = terrain.heightmap[Mathf.RoundToInt(nextLookLeft.x) + terrain.xSize * Mathf.RoundToInt(nextLookLeft.z)];
+                heightLeft = (heightLeft - calibration.minTerrainHeight) / (calibration.maxTerrainHeight - calibration.minTerrainHeight);
+                leftWater = heightLeft < upperLim && heightLeft > lowerLim;
             }
-            else if (outOfBoundsLeft)
-            {
-                animal.eulerAngles = new Vector3(animal.eulerAngles.x, animal.eulerAngles.y + 100 * Time.deltaTime, animal.eulerAngles.z);
-                AdjustPosition(animal);
-                return;
+            else{
+                leftWater = false;
             }
-            else if (outOfBoundsRight)
-            {
-                animal.eulerAngles = new Vector3(animal.eulerAngles.x, animal.eulerAngles.y - 100 * Time.deltaTime, animal.eulerAngles.z);
-                AdjustPosition(animal);
-                return;
+            if (!outOfBoundsRight){
+                float heightRight = terrain.heightmap[Mathf.RoundToInt(nextLookRight.x) + terrain.xSize * Mathf.RoundToInt(nextLookRight.z)];
+                heightRight = (heightRight - calibration.minTerrainHeight) / (calibration.maxTerrainHeight - calibration.minTerrainHeight);
+                rightWater = heightRight < upperLim && heightRight > lowerLim;
             }
-            float heightLeft = terrain.heightmap[Mathf.RoundToInt(nextLookLeft.x) + terrain.xSize * Mathf.RoundToInt(nextLookLeft.z)];
-            float heightRight = terrain.heightmap[Mathf.RoundToInt(nextLookRight.x) + terrain.xSize * Mathf.RoundToInt(nextLookRight.z)];
-            heightLeft = (heightLeft - calibration.minTerrainHeight) / (calibration.maxTerrainHeight - calibration.minTerrainHeight);
-            heightRight = (heightRight - calibration.minTerrainHeight) / (calibration.maxTerrainHeight - calibration.minTerrainHeight);
-            bool leftWater = heightLeft < upperLim && heightLeft > lowerLim;
-            bool rightWater = heightRight < upperLim && heightRight > lowerLim;
+            else{
+                rightWater = false;
+            }
             if (rotateVal == 0)
                 rotateVal = leftWater && !rightWater ? -100 : 100;
             Vector3 nextStep2 = animal.localPosition + rotation * Time.deltaTime * 10f;

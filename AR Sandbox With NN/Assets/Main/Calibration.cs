@@ -42,7 +42,8 @@ public class Calibration : MonoBehaviour
     // public float[] shift10;
     // public float[] shift01;
     // public float[] shift11;
-    public float[][] depthDisplacementArray;
+    public float[][] depthShiftArray;
+    public float trueMinHeight;
     public Vector2Int xCut = new Vector2Int(0, 0);
     public Vector2Int zCut = new Vector2Int(0, 0);
     Vector2Int xCutNew = new Vector2Int(0, 0);
@@ -52,13 +53,14 @@ public class Calibration : MonoBehaviour
     Vector3 screenPosition;
     float minIndex;
     float[] oldShift;
+    bool setMinHeightActive = false;
     void Start()
     {
         // shift00 = new float[2];
         // shift10 = new float[2];
         // shift01 = new float[2];
         // shift11 = new float[2];
-        depthDisplacementArray = new float[][]{new float[2], new float[2], new float[2], new float[2]};
+        depthShiftArray = new float[][]{new float[2], new float[2], new float[2], new float[2]};
 
 
         ui = GameObject.Find("UI");
@@ -205,7 +207,7 @@ public class Calibration : MonoBehaviour
                 {
                     minDist = distance;
                     minIndex = k;
-                    oldShift = (float[])depthDisplacementArray[k].Clone();
+                    oldShift = (float[])depthShiftArray[k].Clone();
                 }
             }
         }
@@ -215,8 +217,20 @@ public class Calibration : MonoBehaviour
             Vector3 screenPositionNew = Input.mousePosition;
             float diffX = screenPositionNew.x - screenPosition.x;
             float diffY = screenPositionNew.y - screenPosition.y;
-            depthDisplacementArray[(int)minIndex][0] = oldShift[0] + diffY/100;
-            depthDisplacementArray[(int)minIndex][1] = oldShift[1] - diffX/100;
+            depthShiftArray[(int)minIndex][0] = oldShift[0] + diffY/100;
+            depthShiftArray[(int)minIndex][1] = oldShift[1] - diffX/100;
+        }
+
+        if (setMinHeightActive && Input.GetMouseButtonDown(0))
+        {
+            Vector3 worldPosition = Camera.GetComponent<Camera>().ScreenToWorldPoint(Input.mousePosition);
+            Vector3 terrainPosition = terrainpos.transform.InverseTransformPoint(worldPosition);
+            int x = Mathf.Clamp((int)terrainPosition.x, 0, terrainpos.GetComponent<TerrainGen>().xSize - 1);
+            int z = Mathf.Clamp((int)terrainPosition.z, 0, terrainpos.GetComponent<TerrainGen>().zSize - 1);
+            trueMinHeight = terrainpos.GetComponent<TerrainGen>().heightmap[x + z * terrainpos.GetComponent<TerrainGen>().xSize];
+            Debug.Log("Setting min height to " + trueMinHeight);
+            ui.SetActive(true);
+            setMinHeightActive = false;
         }
 
     }
@@ -364,6 +378,12 @@ public class Calibration : MonoBehaviour
     {
         Save();
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    public void SetMinHeight()
+    {
+        ui.SetActive(false);
+        setMinHeightActive = true;
     }
 
     void Save()
