@@ -144,6 +144,10 @@ public class TerrainGen : MonoBehaviour
         computeShader.SetFloats("depthShift10", calibration.depthShiftArray[1]);
         computeShader.SetFloats("depthShift01", calibration.depthShiftArray[2]);
         computeShader.SetFloats("depthShift11", calibration.depthShiftArray[3]);
+        computeShader.SetFloats("shift00", calibration.shiftArray[0]);
+        computeShader.SetFloats("shift10", calibration.shiftArray[1]);
+        computeShader.SetFloats("shift01", calibration.shiftArray[2]);
+        computeShader.SetFloats("shift11", calibration.shiftArray[3]);
         computeShader.SetFloat("trueMinHeight", calibration.trueMinHeight);
         
 

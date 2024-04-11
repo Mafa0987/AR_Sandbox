@@ -33,6 +33,10 @@ float2 depthShift00;
 float2 depthShift10;
 float2 depthShift01;
 float2 depthShift11;
+float2 shift00;
+float2 shift10;
+float2 shift01;
+float2 shift11;
 float trueMinHeight;
 
 // static float4 Blue = float4(0, 0, 1, 1);
@@ -154,8 +158,13 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     float2 depthShift0 = lerp(depthShift00, depthShift10, (float)id.x/(xSize-1));
     float2 depthShift1 = lerp(depthShift01, depthShift11, (float)id.x/(xSize-1));
     float2 depthShift = lerp(depthShift0, depthShift1, (float)id.y/(zSize-1));
-    float x = id.x + depthShift.x * -heightDiff;
-    float z = id.y + depthShift.y * -heightDiff;
+
+    float2 shift0 = lerp(shift00, shift10, (float)id.x/(xSize-1));
+    float2 shift1 = lerp(shift01, shift11, (float)id.x/(xSize-1));
+    float2 shift = lerp(shift0, shift1, (float)id.y/(zSize-1));
+
+    float x = id.x + depthShift.x * -heightDiff + shift.x;
+    float z = id.y + depthShift.y * -heightDiff + shift.y;
 
     vertices[vert] = float3(x, height, z);
 

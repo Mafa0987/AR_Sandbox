@@ -2,7 +2,6 @@ using UnityEngine;
 using Unity.Sentis;
 using UnityEngine.UI;
 using System;
-using Mono.Cecil.Cil;
 
 public class NeuralNetwork : MonoBehaviour
 {

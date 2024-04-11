@@ -1,11 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
-using Palmmedia.ReportGenerator.Core.Parser.Analysis;
-using UnityEditor.SearchService;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-using UnityEditor.SpeedTree.Importer;
 
 public class Calibration : MonoBehaviour
 {
@@ -43,6 +40,7 @@ public class Calibration : MonoBehaviour
     // public float[] shift01;
     // public float[] shift11;
     public float[][] depthShiftArray;
+    public float[][] shiftArray;
     public float trueMinHeight;
     public Vector2Int xCut = new Vector2Int(0, 0);
     public Vector2Int zCut = new Vector2Int(0, 0);
@@ -61,6 +59,7 @@ public class Calibration : MonoBehaviour
         // shift01 = new float[2];
         // shift11 = new float[2];
         depthShiftArray = new float[][]{new float[2], new float[2], new float[2], new float[2]};
+        shiftArray = new float[][]{new float[2], new float[2], new float[2], new float[2]};
 
 
         ui = GameObject.Find("UI");
@@ -188,7 +187,7 @@ public class Calibration : MonoBehaviour
         rainHeight = maxTerrainHeight + rainOffset;
         CalibrateTransform();
 
-        if (Input.GetMouseButtonDown(0) && Input.GetKey(KeyCode.LeftShift))
+        if (Input.GetMouseButtonDown(0) && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.LeftControl)))
         {
             screenPosition = Input.mousePosition;
             Vector3 worldPosition = Camera.GetComponent<Camera>().ScreenToWorldPoint(screenPosition);
@@ -207,18 +206,24 @@ public class Calibration : MonoBehaviour
                 {
                     minDist = distance;
                     minIndex = k;
-                    oldShift = (float[])depthShiftArray[k].Clone();
+                    oldShift = Input.GetKey(KeyCode.LeftShift) ? (float[])shiftArray[k].Clone() : (float[])depthShiftArray[k].Clone();
                 }
             }
         }
 
-        if (Input.GetMouseButton(0) && Input.GetKey(KeyCode.LeftShift))
+        if (Input.GetMouseButton(0) && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.LeftControl)))
         {
             Vector3 screenPositionNew = Input.mousePosition;
             float diffX = screenPositionNew.x - screenPosition.x;
             float diffY = screenPositionNew.y - screenPosition.y;
-            depthShiftArray[(int)minIndex][0] = oldShift[0] + diffY/100;
-            depthShiftArray[(int)minIndex][1] = oldShift[1] - diffX/100;
+            if (Input.GetKey(KeyCode.LeftShift)){
+                shiftArray[(int)minIndex][0] = oldShift[0] + diffY/10;
+                shiftArray[(int)minIndex][1] = oldShift[1] - diffX/10;
+            }
+            else{
+                depthShiftArray[(int)minIndex][0] = oldShift[0] + diffY/100;
+                depthShiftArray[(int)minIndex][1] = oldShift[1] - diffX/100;
+            }
         }
 
         if (setMinHeightActive && Input.GetMouseButtonDown(0))
