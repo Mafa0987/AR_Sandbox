@@ -28,18 +28,12 @@ public class Calibration : MonoBehaviour
     public InputField currentMinHeight;
     public float maxTerrainHeight = 10;
     public float minTerrainHeight = 0f;
-    public float rainOffset = 0f;
-    public float rainHeight = 10;
     public float depthShiftx = 0;
     public float indexShiftx = 0;
     public float centerX = 0;
     public float depthShifty = 0;
     public float indexShifty = 0;
     public float centerY = 0;
-    // public float[] shift00;
-    // public float[] shift10;
-    // public float[] shift01;
-    // public float[] shift11;
     public float[][] depthShiftArray;
     public float[][] shiftArray;
     public float trueMinHeight;
@@ -47,21 +41,16 @@ public class Calibration : MonoBehaviour
     public Vector2Int zCut = new Vector2Int(0, 0);
     Vector2Int xCutNew = new Vector2Int(0, 0);
     Vector2Int zCutNew = new Vector2Int(0, 0);
-    // Start is called before the first frame update
-
     Vector3 screenPosition;
     float minIndex;
     float[] oldShift;
     bool setMinHeightActive = false;
+
+    // Start is called before the first frame update
     void Start()
     {
-        // shift00 = new float[2];
-        // shift10 = new float[2];
-        // shift01 = new float[2];
-        // shift11 = new float[2];
         depthShiftArray = new float[][]{new float[2], new float[2], new float[2], new float[2]};
         shiftArray = new float[][]{new float[2], new float[2], new float[2], new float[2]};
-
 
         ui = GameObject.Find("UI");
         Camera = GameObject.Find("Main Camera").transform;
@@ -95,15 +84,7 @@ public class Calibration : MonoBehaviour
         {
             trueMinHeight = PlayerPrefs.GetFloat("trueMinHeight");
             currentMinHeight.text = trueMinHeight.ToString();
-        }
-        if (PlayerPrefs.HasKey("rainOffset"))
-        {
-            rainOffset = PlayerPrefs.GetFloat("rainOffset");
-        }
-        if (PlayerPrefs.HasKey("rainHeight"))
-        {
-            rainHeight = PlayerPrefs.GetFloat("rainHeight");
-        }        
+        }     
         if (PlayerPrefs.HasKey("xCut1"))
         {
             xCut.x = PlayerPrefs.GetInt("xCut1");
@@ -185,15 +166,7 @@ public class Calibration : MonoBehaviour
             zCutInput2.onEndEdit.AddListener((v) => {
                 zCutNew.y = int.Parse(v);
                 zCutSlider2.value = zCutNew.y;});
-
-            // maxTerrainHeight = maxTerrainSlider.value;
-            // minTerrainHeight = minTerrainSlider.value;
-            // xCutNew.x = (int)xCutSlider1.value;
-            // xCutNew.y = (int)xCutSlider2.value;
-            // zCutNew.x = (int)zCutSlider1.value;
-            // zCutNew.y = (int)zCutSlider2.value;
         }
-        rainHeight = maxTerrainHeight + rainOffset;
         CalibrateTransform();
 
         if (Input.GetMouseButtonDown(0) && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.LeftControl)))
@@ -317,7 +290,6 @@ public class Calibration : MonoBehaviour
             float[] x = new float[4]{scaleSpeed, 0, -scaleSpeed, 0};
             float[] z = new float[4]{0, -scaleSpeed, 0, scaleSpeed};
             terrainpos.transform.localScale += new Vector3(x[(int)orientation], 0, z[(int)orientation]);
-            //terrainpos.transform.localScale += new Vector3(scaleSpeed, 0, scaleSpeed);
         }
         else if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.RightArrow))
         {
@@ -335,7 +307,6 @@ public class Calibration : MonoBehaviour
             float[] x = new float[4]{-scaleSpeed, 0, scaleSpeed, 0};
             float[] z = new float[4]{0, scaleSpeed, 0, -scaleSpeed};
             terrainpos.transform.localScale += new Vector3(x[(int)orientation], 0, z[(int)orientation]);
-            //terrainpos.transform.localScale += new Vector3(-scaleSpeed, 0, -scaleSpeed);
         }
         else if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.LeftArrow))
         {
@@ -351,12 +322,10 @@ public class Calibration : MonoBehaviour
         if (Input.GetKey(KeyCode.O))
         {
             maxTerrainHeight += 100f * dt;
-            rainHeight = maxTerrainHeight + rainOffset;
         }
         else if (Input.GetKey(KeyCode.L))
         {
             maxTerrainHeight -= 100f * dt;
-            rainHeight = maxTerrainHeight + rainOffset;
         }
         if (Input.GetKey(KeyCode.I))
         {
@@ -365,16 +334,6 @@ public class Calibration : MonoBehaviour
         else if (Input.GetKey(KeyCode.K))
         {
             minTerrainHeight -= 100f * dt;
-        }
-        if (Input.GetKey(KeyCode.U))
-        {
-            rainOffset += 100f * dt;
-            rainHeight = maxTerrainHeight + rainOffset;
-        }
-        else if (Input.GetKey(KeyCode.J))
-        {
-            rainOffset -= 100f * dt;
-            rainHeight = maxTerrainHeight + rainOffset;
         }
     }
 
@@ -399,7 +358,6 @@ public class Calibration : MonoBehaviour
         {
             transform.position = new Vector3(PlayerPrefs.GetFloat(transform.name + "x"), PlayerPrefs.GetFloat(transform.name + "y"), PlayerPrefs.GetFloat(transform.name + "z"));
             transform.localScale = new Vector3(PlayerPrefs.GetFloat(transform.name + "sx"), PlayerPrefs.GetFloat(transform.name + "sy"), PlayerPrefs.GetFloat(transform.name + "sz"));
-            //transform.rotation = new Quaternion(PlayerPrefs.GetFloat(transform.name + "rx"), PlayerPrefs.GetFloat(transform.name + "ry"), PlayerPrefs.GetFloat(transform.name + "rz"), PlayerPrefs.GetFloat(transform.name + "rw"));
         }
     }
 
@@ -461,7 +419,6 @@ public class Calibration : MonoBehaviour
         Debug.Log("Saving calibration");
         PlayerPrefs.SetFloat("maxTerrainHeight", maxTerrainHeight);
         PlayerPrefs.SetFloat("minTerrainHeight", minTerrainHeight);
-        PlayerPrefs.SetFloat("rainOffset", rainOffset);
         PlayerPrefs.SetFloat("rotation", Camera.eulerAngles.y);
         PlayerPrefs.SetInt("xCut1", xCutNew.x);
         PlayerPrefs.SetInt("xCut2", xCutNew.y);

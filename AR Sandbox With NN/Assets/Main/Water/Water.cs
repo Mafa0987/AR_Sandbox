@@ -53,12 +53,7 @@ public class Water : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-        // if (Input.GetKey(KeyCode.Space))
-        // {
-        //     AddBump();
-        // }
         UpdateHeights();
-        //UpdateMesh();
         if (clearWater)
         {
             clearWater = false;
@@ -73,7 +68,6 @@ public class Water : MonoBehaviour
             clearWater = true;
             WaterCS.SetBool("clearWater", clearWater);
         }
-        //heightmapBuffer.SetData(terrain.heightmap);
         WaterCS.Dispatch(2, 512/8, 424/8, 1);
         verticesBuffer.GetData(vertices);
         UpdateMesh();
@@ -83,11 +77,7 @@ public class Water : MonoBehaviour
     }
 
     void UpdateHeights()
-    {
-        //heightMap = terrain.heightmap;
-        //heightmapBuffer.SetData(heightMap);
-        //heightmapRawBuffer.SetData(terrain.heightmapRaw);
-        
+    {  
         dt = Time.fixedDeltaTime;
 
         WaterCS.SetFloat("dt", dt);
@@ -95,7 +85,6 @@ public class Water : MonoBehaviour
         WaterCS.SetFloat("xSize", xSize);
         WaterCS.SetFloat("zSize", zSize);
         WaterCS.SetFloat("a", a);
-        //WaterCS.SetFloat("rainHeight", calibration.rainHeight);
         WaterCS.SetInt("handPositionX", nn.x_cord);
         WaterCS.SetInt("handPositionY", nn.y_cord);
         
@@ -105,7 +94,6 @@ public class Water : MonoBehaviour
         }
         WaterCS.Dispatch(0, 512/8, 424/8, 1);
         WaterCS.Dispatch(1, 512/8, 424/8, 1);
-        //verticesBuffer.GetData(vertices);
         WaterCS.Dispatch(3, 512/8, 424/8, 1);
     }
 
@@ -150,16 +138,11 @@ public class Water : MonoBehaviour
         WaterCS.SetBuffer(5, "waterNormals", waterNormals);
         WaterCS.SetTexture(3, "colors", colors);
 
-
-        //terrain.computeShader.SetBuffer(4, "waterDepths", depthMapBuffer);
-
-        //test
         WaterCS.SetBuffer(2, "vertices", verticesBuffer);
         WaterCS.SetBuffer(2, "heightmap", terrain.heightBuffer);
         WaterCS.SetBuffer(4, "heightmapRaw", heightmapRawBuffer);
         WaterCS.SetBuffer(4, "depthMap", depthMapBuffer);
         WaterCS.SetBuffer(2, "depthMap", depthMapBuffer);
-        //
 
         heightMap = terrain.heightmap;
         for (int i = 0, z = 0; z < zSize; z++)
@@ -207,23 +190,6 @@ public class Water : MonoBehaviour
             vert++;
         }
     }
-
-    // void AddBump()
-    // {
-    //     depthMapBuffer.GetData(depthMap);
-    //     for (int z = 0; z <= zSize; z++)
-    //     {
-    //         for (int x = 0; x < xSize; x++)
-    //         {
-    //             float circle = (x - 250) * (x - 250) + (z - 250) * (z - 250);
-    //             if (circle < 5000)
-    //             {
-    //                 depthMap[x + z * xSize] += 0.5f;
-    //             }
-    //         }
-    //     }
-    //     depthMapBuffer.SetData(depthMap);
-    // }
 
     void CreateUV()
     {

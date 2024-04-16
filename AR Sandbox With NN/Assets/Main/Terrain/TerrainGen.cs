@@ -39,7 +39,6 @@ public class TerrainGen : MonoBehaviour
     //test
 
     public float[] heightmap;
-    public float[] heightmapRaw;
     public ushort[] heightmap_short;
 
 
@@ -50,29 +49,15 @@ public class TerrainGen : MonoBehaviour
     public int xCut = 0;
     public int zCut = 0;
 
-    public float amplitude1 = 1f;
-    public float amplitude2 = 1f;
-    public float amplitude3 = 1f;
-    public float frequency1 = 1f;
-    public float frequency2 = 1f;
-    public float frequency3 = 1f;
-    public float noiseStrength = 1f;
-
     public float minTerrainHeight = 0f;
     public float maxTerrainHeight = 10f;
-    public float rainHeight = 10f;
-    public float rainOffset = 0f;
 
     //test
-    ushort[] old;
     ComputeBuffer oldBuffer;
-    uint[] ny;
     public ComputeBuffer nyBuffer;
     ComputeBuffer heightmapRawBuffer;
 
     //public Water water;
-    ComputeBuffer waterNormals;
-    //test
     public bool update = false;
 
     // Start is called before the first frame update
@@ -105,7 +90,6 @@ public class TerrainGen : MonoBehaviour
 
     void CreateShapeGPU()
     {
-        //CreateHeightmap();
         heightmap_short = msm.GetDepthData();
         oldBuffer.SetData(heightmap_short);
         //Converts Heightmap to integer
@@ -123,7 +107,6 @@ public class TerrainGen : MonoBehaviour
         //Cuts heightmap and converts to float
         computeShader.Dispatch(3, 512/8, 424/8, 1);
         heightBuffer.GetData(heightmap);
-        //heightmapRawBuffer.GetData(heightmapRaw);
 
         //Rest of the calculations
         minTerrainHeight = calibration.minTerrainHeight;
@@ -136,10 +119,6 @@ public class TerrainGen : MonoBehaviour
         computeShader.SetFloat("depthShifty", calibration.depthShifty);
         computeShader.SetFloat("indexShifty", calibration.indexShifty);
         computeShader.SetFloat("centerY", calibration.centerY);
-        // computeShader.SetFloats("shift00", calibration.shift00);
-        // computeShader.SetFloats("shift01", calibration.shift01);
-        // computeShader.SetFloats("shift10", calibration.shift10);
-        // computeShader.SetFloats("shift11", calibration.shift11);
         computeShader.SetFloats("depthShift00", calibration.depthShiftArray[0]);
         computeShader.SetFloats("depthShift10", calibration.depthShiftArray[1]);
         computeShader.SetFloats("depthShift01", calibration.depthShiftArray[2]);
@@ -152,17 +131,13 @@ public class TerrainGen : MonoBehaviour
         
 
         computeShader.Dispatch(0, 512/8, 424/8, 1);
-        //verticesBuffer.GetData(vertices);
         computeShader.Dispatch(1, 128/8, 105/7, 1);
         verticesBuffer.GetData(vertices);
-        // waterNormals.SetData(water.normals);
-        // computeShader.Dispatch(4, (int)Mathf.Ceil(xSize*4/8), (int)Mathf.Ceil(zSize*4/8), 1);
     }
     void UpdateMesh()
     {
         mesh.vertices = vertices;
         material.mainTexture = colors;
-        //mesh.RecalculateNormals();
     }
 
     void InitShader()
@@ -170,11 +145,10 @@ public class TerrainGen : MonoBehaviour
         vertices = new Vector3[xSize * zSize];
         verticesBuffer = new ComputeBuffer(vertices.Length, sizeof(float) * 3);
         heightBuffer = new ComputeBuffer(heightmap.Length, sizeof(float));
-        heightmapRawBuffer = new ComputeBuffer(heightmapRaw.Length, sizeof(float));
+        heightmapRawBuffer = new ComputeBuffer(heightmap.Length, sizeof(float));
         averageBuffer = new ComputeBuffer(N*num_arrays, sizeof(uint));
         sampleSums = new ComputeBuffer(originalWidth * originalHeight, sizeof(uint));
         squaredSums = new ComputeBuffer(originalWidth * originalHeight, sizeof(uint));
-        waterNormals = new ComputeBuffer(xSize * zSize, sizeof(float) * 3);
         colors = new RenderTexture(xSize*4, zSize*4, 24);
         colors.enableRandomWrite = true;
         colors.Create();
@@ -182,8 +156,6 @@ public class TerrainGen : MonoBehaviour
         computeShader.SetBuffer(0, "heightmap", heightBuffer);
         computeShader.SetBuffer(0, "vertices", verticesBuffer);
         computeShader.SetTexture(0, "colors", colors);
-        // computeShader.SetTexture(4, "colors", colors);
-        // computeShader.SetBuffer(4, "waterNormals", waterNormals);
         computeShader.SetBuffer(1, "heightmap", heightBuffer);
         computeShader.SetBuffer(3, "heightmap", heightBuffer);
         computeShader.SetBuffer(1, "vertices", verticesBuffer);
@@ -204,7 +176,6 @@ public class TerrainGen : MonoBehaviour
         computeShader.SetInt("sampleIndex", sampleIndex);
         //---------------
 
-        //test
         oldBuffer = new ComputeBuffer(512 * 424 / 2, sizeof(uint));
         nyBuffer = new ComputeBuffer(512 * 424, sizeof(float));
         oldBuffer.SetData(heightmap_short);
@@ -216,7 +187,6 @@ public class TerrainGen : MonoBehaviour
         computeShader.SetBuffer(3, "sampleSums", sampleSums);
         computeShader.SetBuffer(2, "squaredSums", squaredSums);
         computeShader.SetBuffer(3, "squaredSums", squaredSums);
-        //test
     }
 
     void CreateTriangles()
@@ -244,23 +214,8 @@ public class TerrainGen : MonoBehaviour
 
     void CreateHeightmap()
     {
-        amplitude2 = Random.Range(0f, 1f);
         heightmap_short = new ushort[originalWidth * originalHeight];
-        heightmapRaw = new float[xSize * zSize];
         heightmap = new float[xSize * zSize];
-        // for (int i = 0, z = 0; z < originalHeight; z++)
-        // {
-        //     for (int x = 0; x < originalWidth; x++)
-        //     {
-        //         ushort y =
-        //             (ushort)((amplitude1 * Mathf.PerlinNoise(x * frequency1,z * frequency1)
-        //             + amplitude2 * Mathf.PerlinNoise(x * frequency2, z * frequency2)
-        //             + amplitude3 * Mathf.PerlinNoise(x * frequency3, z * frequency3)
-        //                 * noiseStrength)*300*4/25/2);
-        //         heightmap_short[i] = y;
-        //         i++;
-        //     }
-        // }
     }
 
     void CreateUV()
@@ -298,6 +253,5 @@ public class TerrainGen : MonoBehaviour
         averageBuffer.Release();
         sampleSums.Release();
         squaredSums.Release();
-        waterNormals.Release();
     }
 }

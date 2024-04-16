@@ -11,8 +11,6 @@ float zSize;
 float dt;
 float a;
 
-//float rainHeight;
-
 bool clearWater;
 
 RWStructuredBuffer<float3> vertices;
@@ -101,7 +99,6 @@ void UpdateHeights (uint3 id : SV_DispatchThreadID)
     float deltavolume = influx - outflux;
 
     depthMap[vert] += dt * deltavolume / a;
-    //vertices[vert].y = depthMap[vert] + heightmap[vert] - 0.1;
     float columnHeight = depthMap[vert] + heightmap[vert] - 0.1;
     vertices[vert] = float3(terrainVertices[vert].x, columnHeight, terrainVertices[vert].z);
 
@@ -118,7 +115,6 @@ void UpdatePlane (uint3 id : SV_DispatchThreadID)
         return;
 
     int vert = id.x + id.y * xSize;
-    //vertices[vert].y = depthMap[vert] + heightmap[vert] - 0.1;
     float columnHeight = depthMap[vert] + heightmap[vert] - 0.1;
     vertices[vert] = float3(terrainVertices[vert].x, columnHeight, terrainVertices[vert].z);
 }

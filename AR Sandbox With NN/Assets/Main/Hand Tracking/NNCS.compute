@@ -1,12 +1,8 @@
 // Each #kernel tells which function to compile; you can have many kernels
-#pragma kernel ShortToInt
 #pragma kernel ColorMapping
 #pragma kernel Bilinear
 #pragma kernel makeTexture
 
-// Create a RenderTexture with enableRandomWrite flag and set it
-// with cs.SetTexture
-RWStructuredBuffer<uint> depthDataShort;
 RWStructuredBuffer<uint> depthData;
 RWStructuredBuffer<float> input;
 RWStructuredBuffer<float> output;
@@ -14,17 +10,14 @@ float ratioX;
 float ratioY;
 int inputDimX;
 int inputDimY;
-int threadsize;
 int xCutL;
 int zCutB;
 int handX;
 int handY;
-int modelRes;
 
 RWTexture2D<float4> outputTexture;
 
 static float3 colorsArray[] = {float3(1, 0, 0), float3(1, 0.5, 0), float3(1, 1, 0), float3(0, 1, 0), float3(0, 0, 1)};
-//static float3 colorsArray[] = {float3(255, 0, 0), float3(255, 127.5, 0), float3(255, 255, 0), float3(0, 255, 0), float3(0, 0, 255)};
 
 float3 GetColor(float height)
 {
@@ -39,16 +32,6 @@ float3 GetColor(float height)
             return lerp(colorsArray[i], colorsArray[i+1], (height-lowerBound)/step);
     }
     return float3(0, 0, 1);
-}
-
-[numthreads(64,1,1)]
-void ShortToInt (uint3 id : SV_DispatchThreadID)
-{
-    uint num = depthDataShort[id.x];
-    uint first = num & 0x0000FFFF;
-    uint sec = (num & 0xFFFF0000) >> 16;
-    depthData[id.x*2] = first;
-    depthData[id.x*2+1] = sec;
 }
 
 // Color mapping
@@ -102,16 +85,13 @@ void Bilinear (uint3 id : SV_DispatchThreadID)
 [numthreads(8,8,1)]
 void makeTexture (uint3 id : SV_DispatchThreadID)
 {
-    // int index = id.x * 3 + (inputDimY-1-id.y) * 3 * inputDimX;
-    // if ((id.x - (handX*inputDimX/256))*(id.x - (handX*inputDimX/256)) + ((inputDimY-1-id.y) - handY*inputDimY/256)*((inputDimY-1-id.y) - handY*inputDimY/256) < 10)
-    // {
-    //     outputTexture[id.xy] = float4(0, 1, 0, 1);
-    // }
-    // else
-    // {
-    //     outputTexture[id.xy] = float4(input[index]/255.0, input[index + 1]/255.0, input[index + 2]/255.0, 1);
-    // }
-
     int index = id.x * 3 + (256-1-id.y) * 3 * 256;
-    outputTexture[id.xy] = float4(output[index]/255.0, output[index + 1]/255.0, output[index + 2]/255.0, 1);
+    if ((id.x - handX) * (id.x - handX) + ((255-id.y) - handY) * ((255-id.y) - handY) < 10)
+    {
+        outputTexture[id.xy] = float4(0, 1, 0, 1);
+    }
+    else
+    {
+        outputTexture[id.xy] = float4(output[index]/255.0, output[index + 1]/255.0, output[index + 2]/255.0, 1);
+    }
 }

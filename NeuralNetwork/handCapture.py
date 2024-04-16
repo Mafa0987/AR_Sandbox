@@ -44,7 +44,7 @@ bottomRightx = 1480
 bottomRighty = 911
 
 rate = 0
-number = 0
+number = 1100
 depthFrame = np.zeros((400, 300, 3), dtype=np.uint8)
 
 def draw_circle(event,x,y,flags,param):
@@ -105,24 +105,24 @@ while(True):
                 for j in range(depthx-5, depthx+5):
                     if i >= 0 and i < 400 and j >= 0 and j < 300:
                         depthCopy[i, j] = [0, 255, 0]
-        if run:
-            if rate > 1:
-                rate = 0
-                if os.path.exists(f"C:/Users/mkf99/AR_Sandbox/TestData/Images/NoHand/{number}.png"):
-                    print("File already exists")
-                    break
-                f = open(f"C:/Users/mkf99/AR_Sandbox/NeuralNetwork/TestData/Positions/NoHand/{number}.txt", "x")
-                #f.write(str(depthx) + " " + str(depthy))
-                f.write(str(0) + " " + str(0))
-                cv2.imwrite(f"C:/Users/mkf99/AR_Sandbox/NeuralNetwork/TestData/Images/NoHand/{number}.png", depth)
-                f.close()
-                if number == 499:
-                    break
+            if run:
+                if rate > 1:
+                    rate = 0
+                    if os.path.exists(f"C:/Users/mkf99/AR_Sandbox/NeuralNetwork/Data/PNG_A/Images/OpenHand/{number}.png"):
+                        print("File already exists")
+                        break
+                    f = open(f"C:/Users/mkf99/AR_Sandbox/NeuralNetwork/Data/PNG_A/Positions/OpenHand/{number}.txt", "x")
+                    f.write(str(depthx) + " " + str(depthy))
+                    #f.write(str(0) + " " + str(0))
+                    cv2.imwrite(f"C:/Users/mkf99/AR_Sandbox/NeuralNetwork/Data/PNG_A/Images/OpenHand/{number}.png", depth)
+                    f.close()
+                    if number == 1100+99:
+                        break
+                    else:
+                        number += 1
+                    print(number)
                 else:
-                    number += 1
-                print(number)
-            else:
-                rate += 1
+                    rate += 1
         cv2.imshow('image', depthCopy)
         if cv2.waitKey(1) & 0xFF == ord('r'):
             run = not run
