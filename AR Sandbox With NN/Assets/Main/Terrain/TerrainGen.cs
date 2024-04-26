@@ -41,6 +41,8 @@ public class TerrainGen : MonoBehaviour
     public float[] heightmap;
     public ushort[] heightmap_short;
 
+    public float landWaterRatio;
+
 
     public int xSize = 512;
     public int zSize = 424;
@@ -53,8 +55,8 @@ public class TerrainGen : MonoBehaviour
     public float maxTerrainHeight = 10f;
 
     //test
-    ComputeBuffer oldBuffer;
-    public ComputeBuffer nyBuffer;
+    ComputeBuffer depthDataShort;
+    public ComputeBuffer depthDataInt;
     ComputeBuffer heightmapRawBuffer;
 
     //public Water water;
@@ -91,7 +93,7 @@ public class TerrainGen : MonoBehaviour
     void CreateShapeGPU()
     {
         heightmap_short = msm.GetDepthData();
-        oldBuffer.SetData(heightmap_short);
+        depthDataShort.SetData(heightmap_short);
         //Converts Heightmap to integer
         computeShader.Dispatch(2, 512*424/2/64, 1, 1);
 
@@ -107,6 +109,19 @@ public class TerrainGen : MonoBehaviour
         //Cuts heightmap and converts to float
         computeShader.Dispatch(3, 512/8, 424/8, 1);
         heightBuffer.GetData(heightmap);
+
+        //temp
+        float sum = 0;
+        for (int i = 0; i < heightmap.Length; i++)
+        {
+            float height_norm = (heightmap[i] - minTerrainHeight) / (maxTerrainHeight - minTerrainHeight);
+            if (height_norm < 0.4){
+                sum += 1;
+            }
+        }
+        landWaterRatio = sum / heightmap.Length;
+        Debug.Log(landWaterRatio);
+        //
 
         //Rest of the calculations
         minTerrainHeight = calibration.minTerrainHeight;
@@ -176,12 +191,12 @@ public class TerrainGen : MonoBehaviour
         computeShader.SetInt("sampleIndex", sampleIndex);
         //---------------
 
-        oldBuffer = new ComputeBuffer(512 * 424 / 2, sizeof(uint));
-        nyBuffer = new ComputeBuffer(512 * 424, sizeof(float));
-        oldBuffer.SetData(heightmap_short);
-        computeShader.SetBuffer(2, "old", oldBuffer);
-        computeShader.SetBuffer(2, "ny", nyBuffer);
-        computeShader.SetBuffer(3, "ny", nyBuffer);
+        depthDataShort = new ComputeBuffer(512 * 424 / 2, sizeof(uint));
+        depthDataInt = new ComputeBuffer(512 * 424, sizeof(float));
+        depthDataShort.SetData(heightmap_short);
+        computeShader.SetBuffer(2, "depthDataShort", depthDataShort);
+        computeShader.SetBuffer(2, "depthDataInt", depthDataInt);
+        computeShader.SetBuffer(3, "depthDataInt", depthDataInt);
         computeShader.SetBuffer(3, "heightmapRaw", heightmapRawBuffer);
         computeShader.SetBuffer(2, "sampleSums", sampleSums);
         computeShader.SetBuffer(3, "sampleSums", sampleSums);
@@ -247,8 +262,8 @@ public class TerrainGen : MonoBehaviour
     {
         verticesBuffer.Release();
         heightBuffer.Release();
-        oldBuffer.Release();
-        nyBuffer.Release();
+        depthDataShort.Release();
+        depthDataInt.Release();
         heightmapRawBuffer.Release();
         averageBuffer.Release();
         sampleSums.Release();

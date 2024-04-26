@@ -12,8 +12,8 @@ RWStructuredBuffer<float> heightmap;
 RWStructuredBuffer<float> heightmapRaw;
 RWTexture2D<float4> colors;
 
-RWStructuredBuffer<uint> old;
-RWStructuredBuffer<uint> ny;
+RWStructuredBuffer<uint> depthDataShort;
+RWStructuredBuffer<uint> depthDataInt;
 RWStructuredBuffer<uint> average;
 RWStructuredBuffer<uint> sampleSums;
 RWStructuredBuffer<uint> squaredSums;
@@ -91,11 +91,11 @@ void ColorSquare(uint2 idxy, int size, float4 color)
 [numthreads(64,1,1)]
 void ShortToInt (uint3 id : SV_DispatchThreadID)
 {
-    uint num = old[id.x];
+    uint num = depthDataShort[id.x];
     uint first = num & 0x0000FFFF;
     uint sec = (num & 0xFFFF0000) >> 16;
-    ny[id.x*2] = first;
-    ny[id.x*2+1] = sec;
+    depthDataInt[id.x*2] = first;
+    depthDataInt[id.x*2+1] = sec;
     
     //add frame to average buffer
     int i_step = id.x * 2;
@@ -121,9 +121,11 @@ void HMProcessing (uint3 id : SV_DispatchThreadID)
     float variance = (float)squaredSums[originalIndex] / (float)num_arrays - height * height;
     height = (2000.0 - height)/2.0;
 
-    heightmapRaw[resizedIndex] = (float)ny[originalIndex];
+    heightmapRaw[resizedIndex] = (float)depthDataInt[originalIndex];
     if (abs(height-heightmap[resizedIndex])>=1.0 && variance < 200.0 && height < maxTerrainHeight)
         heightmap[resizedIndex] = height;
+    if (height == 1000.0)
+        heightmap[resizedIndex] = heightmap[id.x + 1 + id.y * xSize];
 }
 
 [numthreads(8,8,1)]

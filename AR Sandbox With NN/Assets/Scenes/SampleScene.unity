@@ -3522,25 +3522,16 @@ MonoBehaviour:
   minTerrainSlider: {fileID: 340955563}
   maxTerrainSlider: {fileID: 1564157037}
   heightmap: []
-  heightmapRaw: []
   heightmap_short: 
+  landWaterRatio: 0
   xSize: 512
   zSize: 424
   originalWidth: 512
   originalHeight: 424
   xCut: 100
   zCut: 0
-  amplitude1: 1
-  amplitude2: 1
-  amplitude3: 1
-  frequency1: 1
-  frequency2: 1
-  frequency3: 0.009
-  noiseStrength: 9
   minTerrainHeight: 0
   maxTerrainHeight: 10
-  rainHeight: 10
-  rainOffset: 0
   update: 0
 --- !u!64 &847163007
 MeshCollider:
@@ -3796,13 +3787,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalRotation: {x: 0.9063079, y: 0, z: 0, w: 0.42261827}
   m_LocalPosition: {x: 250, y: 900, z: 212}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 130, y: 0, z: 0}
 --- !u!1 &964061888
 GameObject:
   m_ObjectHideFlags: 0
@@ -4829,12 +4820,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b4654930f8d72e4192ccc7dc5fe75d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  vertices: []
   nn: {fileID: 1313332448}
   waterMaterial: {fileID: 2100000, guid: 7f27445cdb995b348990cbfae378980b, type: 2}
   terrain: {fileID: 847163006}
   xSize: 512
   zSize: 424
-  c: 250
+  c: 500
   a: 1
   WaterCS: {fileID: 7200000, guid: 4b8ba5bbfd384724d96414db903c62a0, type: 3}
   normals: []

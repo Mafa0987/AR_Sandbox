@@ -117,6 +117,16 @@ void UpdatePlane (uint3 id : SV_DispatchThreadID)
     int vert = id.x + id.y * xSize;
     float columnHeight = depthMap[vert] + heightmap[vert] - 0.1;
     vertices[vert] = float3(terrainVertices[vert].x, columnHeight, terrainVertices[vert].z);
+    //depthMap[vert] = max(depthMap[vert] - 0.5 * dt, 0);
+
+    // Smoothing
+    // float top = id.y < (zSize - 1) ? (depthMap[vert + xSize]) : depthMap[vert];
+    // float bottom = id.y > 0 ? (depthMap[vert - xSize]) : depthMap[vert];
+    // float left = id.x > 0 ? (depthMap[vert - 1]) : depthMap[vert];
+    // float right = id.x < (xSize - 1) ? (depthMap[vert + 1]) : depthMap[vert];
+    // float averageNeighbourDepth = (top + bottom + left + right) / 4;
+    // float diff = depthMap[vert] - averageNeighbourDepth;
+    // depthMap[vert] -= diff * 5 * dt;
 }
 
 [numthreads(8,8,1)]
@@ -126,7 +136,7 @@ void WaterColor (uint3 id : SV_DispatchThreadID)
         return;
     int vert = id.x + id.y * xSize;
     float depth = depthMap[vert];
-    colors[id.xy] = float4(0, 0, 0.4, clamp(depth / 10, 0, 0.7));
+    colors[id.xy] = float4(0, 0.0, 0.4, clamp(depth / 10, 0, 0.8));
 }
 
 float3 CalculateRefractionDirection(float3 normal, float3 incident, float n1, float n2)

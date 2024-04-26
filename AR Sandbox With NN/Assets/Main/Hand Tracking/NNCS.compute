@@ -4,8 +4,8 @@
 #pragma kernel makeTexture
 
 RWStructuredBuffer<uint> depthData;
-RWStructuredBuffer<float> input;
-RWStructuredBuffer<float> output;
+RWStructuredBuffer<float> depthColor;
+RWStructuredBuffer<float> modelInput;
 float ratioX;
 float ratioY;
 int inputDimX;
@@ -42,9 +42,9 @@ void ColorMapping (uint3 id : SV_DispatchThreadID)
         return;
     float depth = clamp(depthData[id.x + xCutL + (id.y + zCutB)*512] / 4500.0, 0, 1);
     float3 color = GetColor(depth);
-    input[id.x*3 + (inputDimY-1-id.y)*3*inputDimX] = color.x;
-    input[id.x*3 + (inputDimY-1-id.y)*3*inputDimX + 1] = color.y;
-    input[id.x*3 + (inputDimY-1-id.y)*3*inputDimX + 2] = color.z;
+    depthColor[id.x*3 + (inputDimY-1-id.y)*3*inputDimX] = color.x;
+    depthColor[id.x*3 + (inputDimY-1-id.y)*3*inputDimX + 1] = color.y;
+    depthColor[id.x*3 + (inputDimY-1-id.y)*3*inputDimX + 2] = color.z;
 }
 
 // Bilinear Interpolation
@@ -59,27 +59,27 @@ void Bilinear (uint3 id : SV_DispatchThreadID)
     int x2 = min(x1 + 1, inputDimX - 1);
     int y2 = min(y1 + 1, inputDimY - 1);
     float4 c00;
-    c00.r = input[x1*3 + y1*3*inputDimX];
-    c00.g = input[x1*3 + y1*3*inputDimX + 1];
-    c00.b = input[x1*3 + y1*3*inputDimX + 2];
+    c00.r = depthColor[x1*3 + y1*3*inputDimX];
+    c00.g = depthColor[x1*3 + y1*3*inputDimX + 1];
+    c00.b = depthColor[x1*3 + y1*3*inputDimX + 2];
     float4 c10;
-    c10.r = input[x2*3 + y1*3*inputDimX];
-    c10.g = input[x2*3 + y1*3*inputDimX + 1];
-    c10.b = input[x2*3 + y1*3*inputDimX + 2];
+    c10.r = depthColor[x2*3 + y1*3*inputDimX];
+    c10.g = depthColor[x2*3 + y1*3*inputDimX + 1];
+    c10.b = depthColor[x2*3 + y1*3*inputDimX + 2];
     float4 c01;
-    c01.r = input[x1*3 + y2*3*inputDimX];
-    c01.g = input[x1*3 + y2*3*inputDimX + 1];
-    c01.b = input[x1*3 + y2*3*inputDimX + 2];
+    c01.r = depthColor[x1*3 + y2*3*inputDimX];
+    c01.g = depthColor[x1*3 + y2*3*inputDimX + 1];
+    c01.b = depthColor[x1*3 + y2*3*inputDimX + 2];
     float4 c11;
-    c11.r = input[x2*3 + y2*3*inputDimX];
-    c11.g = input[x2*3 + y2*3*inputDimX + 1];
-    c11.b = input[x2*3 + y2*3*inputDimX + 2];
+    c11.r = depthColor[x2*3 + y2*3*inputDimX];
+    c11.g = depthColor[x2*3 + y2*3*inputDimX + 1];
+    c11.b = depthColor[x2*3 + y2*3*inputDimX + 2];
     float4 c0 = lerp(c00, c10, x - x1);
     float4 c1 = lerp(c01, c11, x - x1);
     float4 colorOut = lerp(c0, c1, y - y1);
-    output[index] = colorOut.r;
-    output[index + 1] = colorOut.g;
-    output[index + 2] = colorOut.b;
+    modelInput[index] = colorOut.r;
+    modelInput[index + 1] = colorOut.g;
+    modelInput[index + 2] = colorOut.b;
 }
 
 [numthreads(8,8,1)]
@@ -92,6 +92,6 @@ void makeTexture (uint3 id : SV_DispatchThreadID)
     }
     else
     {
-        outputTexture[id.xy] = float4(output[index]/255.0, output[index + 1]/255.0, output[index + 2]/255.0, 1);
+        outputTexture[id.xy] = float4(modelInput[index]/255.0, modelInput[index + 1]/255.0, modelInput[index + 2]/255.0, 1);
     }
 }

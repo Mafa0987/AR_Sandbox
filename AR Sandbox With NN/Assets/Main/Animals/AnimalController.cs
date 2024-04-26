@@ -119,26 +119,26 @@ public class AnimalController : MonoBehaviour
             Vector3Int nextLookRight = Vector3Int.RoundToInt(nextLook + animal.right * 10);
             bool outOfBoundsLeft = nextLookLeft.x >= terrain.xSize || nextLookLeft.z >= terrain.zSize || nextLookLeft.x <= 0 || nextLookLeft.z <= 0;
             bool outOfBoundsRight = nextLookRight.x >= terrain.xSize || nextLookRight.z >= terrain.zSize || nextLookRight.x <= 0 || nextLookRight.z <= 0;
-            bool leftWater;
-            bool rightWater;
+            bool leftWithinEnv;
+            bool rightWithinEnv;
             if (!outOfBoundsLeft){
                 float heightLeft = terrain.heightmap[Mathf.RoundToInt(nextLookLeft.x) + terrain.xSize * Mathf.RoundToInt(nextLookLeft.z)];
                 heightLeft = (heightLeft - calibration.minTerrainHeight) / (calibration.maxTerrainHeight - calibration.minTerrainHeight);
-                leftWater = heightLeft < upperLim && heightLeft > lowerLim;
+                leftWithinEnv = heightLeft < upperLim && heightLeft > lowerLim;
             }
             else{
-                leftWater = false;
+                leftWithinEnv = false;
             }
             if (!outOfBoundsRight){
                 float heightRight = terrain.heightmap[Mathf.RoundToInt(nextLookRight.x) + terrain.xSize * Mathf.RoundToInt(nextLookRight.z)];
                 heightRight = (heightRight - calibration.minTerrainHeight) / (calibration.maxTerrainHeight - calibration.minTerrainHeight);
-                rightWater = heightRight < upperLim && heightRight > lowerLim;
+                rightWithinEnv = heightRight < upperLim && heightRight > lowerLim;
             }
             else{
-                rightWater = false;
+                rightWithinEnv = false;
             }
             if (rotateVal == 0)
-                rotateVal = leftWater && !rightWater ? -100 : 100;
+                rotateVal = leftWithinEnv && !rightWithinEnv ? -100 : 100;
             Vector3 nextStep2 = animal.localPosition + rotation * Time.deltaTime * 10f;
             animal.localPosition = nextStep2;
             animal.eulerAngles = new Vector3(animal.eulerAngles.x, animal.eulerAngles.y + rotateVal * Time.deltaTime, animal.eulerAngles.z);

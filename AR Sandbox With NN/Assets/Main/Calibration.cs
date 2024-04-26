@@ -41,7 +41,7 @@ public class Calibration : MonoBehaviour
     public Vector2Int zCut = new Vector2Int(0, 0);
     Vector2Int xCutNew = new Vector2Int(0, 0);
     Vector2Int zCutNew = new Vector2Int(0, 0);
-    Vector3 screenPosition;
+    Vector3 initialMousePosition;
     float minIndex;
     float[] oldShift;
     bool setMinHeightActive = false;
@@ -171,9 +171,10 @@ public class Calibration : MonoBehaviour
 
         if (Input.GetMouseButtonDown(0) && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.LeftControl)))
         {
-            screenPosition = Input.mousePosition;
+            Vector3 screenPosition = Input.mousePosition;
             Vector3 worldPosition = Camera.GetComponent<Camera>().ScreenToWorldPoint(screenPosition);
             Vector3 terrainPosition = terrainpos.transform.InverseTransformPoint(worldPosition);
+            initialMousePosition = terrainPosition;
             Vector3[] vertices = terrainpos.GetComponent<TerrainGen>().vertices;
             Vector3[] corners = new Vector3[4];
             corners[0] = vertices[0];
@@ -195,16 +196,17 @@ public class Calibration : MonoBehaviour
 
         if (Input.GetMouseButton(0) && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.LeftControl)))
         {
-            Vector3 screenPositionNew = Input.mousePosition;
-            float diffX = screenPositionNew.x - screenPosition.x;
-            float diffY = screenPositionNew.y - screenPosition.y;
+            Vector3 worldPosition = Camera.GetComponent<Camera>().ScreenToWorldPoint(Input.mousePosition);
+            Vector3 terrainPosition = terrainpos.transform.InverseTransformPoint(worldPosition);
+            float diffX = terrainPosition.x - initialMousePosition.x;
+            float diffY = terrainPosition.z - initialMousePosition.z;
             if (Input.GetKey(KeyCode.LeftShift)){
-                shiftArray[(int)minIndex][0] = oldShift[0] + diffY/10;
-                shiftArray[(int)minIndex][1] = oldShift[1] - diffX/10;
+                shiftArray[(int)minIndex][0] = oldShift[0] + diffX/2;
+                shiftArray[(int)minIndex][1] = oldShift[1] + diffY/2;
             }
             else{
-                depthShiftArray[(int)minIndex][0] = oldShift[0] + diffY/100;
-                depthShiftArray[(int)minIndex][1] = oldShift[1] - diffX/100;
+                depthShiftArray[(int)minIndex][0] = oldShift[0] + diffX/100;
+                depthShiftArray[(int)minIndex][1] = oldShift[1] + diffY/100;
             }
         }
 
