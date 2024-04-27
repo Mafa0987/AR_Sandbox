@@ -35,6 +35,7 @@ public class Water : MonoBehaviour
     ComputeBuffer heightmapBuffer;
     ComputeBuffer heightmapRawBuffer;
     ComputeBuffer depthMapBuffer;
+    ComputeBuffer depthMapTemp;
     ComputeBuffer waterNormals;
     public Vector3[] normals;
 
@@ -115,6 +116,7 @@ public class Water : MonoBehaviour
         }
         WaterCS.Dispatch(0, 512/8, 424/8, 1);
         WaterCS.Dispatch(1, 512/8, 424/8, 1);
+        WaterCS.Dispatch(6, 512/8, 424/8, 1);
         WaterCS.Dispatch(3, 512/8, 424/8, 1);
     }
 
@@ -141,6 +143,7 @@ public class Water : MonoBehaviour
         heightmapBuffer = new ComputeBuffer(vertices.Length, sizeof(float));
         heightmapRawBuffer = new ComputeBuffer(vertices.Length, sizeof(float));
         depthMapBuffer = new ComputeBuffer(vertices.Length, sizeof(float));
+        depthMapTemp = new ComputeBuffer(vertices.Length, sizeof(float));
         waterNormals = new ComputeBuffer(vertices.Length, sizeof(float) * 3);
 
         WaterCS.SetBuffer(0, "vertices", verticesBuffer);
@@ -155,6 +158,9 @@ public class Water : MonoBehaviour
         WaterCS.SetBuffer(1, "depthMap", depthMapBuffer);
         WaterCS.SetBuffer(3, "depthMap", depthMapBuffer);
         WaterCS.SetBuffer(5, "depthMap", depthMapBuffer);
+        WaterCS.SetBuffer(6, "depthMap", depthMapBuffer);
+        WaterCS.SetBuffer(1, "depthMapTemp", depthMapTemp);
+        WaterCS.SetBuffer(6, "depthMapTemp", depthMapTemp);
         WaterCS.SetTexture(5, "colorsTerrain", terrain.colors);
         WaterCS.SetBuffer(5, "waterNormals", waterNormals);
         WaterCS.SetTexture(3, "colors", colors);
@@ -232,6 +238,7 @@ public class Water : MonoBehaviour
         heightmapBuffer.Release();
         heightmapRawBuffer.Release();
         depthMapBuffer.Release();
+        depthMapTemp.Release();
         waterNormals.Release();
     }
 }

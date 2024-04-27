@@ -4,6 +4,7 @@
 #pragma kernel WaterColor
 #pragma kernel AddWater
 #pragma kernel Refraction
+#pragma kernel Smoothing
 
 float c;
 float xSize;
@@ -17,6 +18,7 @@ RWStructuredBuffer<float3> vertices;
 RWStructuredBuffer<float3> terrainVertices;
 RWStructuredBuffer<float4> fluxMap; // x = top, y = bottom, z = left, w = right
 RWStructuredBuffer<float> depthMap;
+RWStructuredBuffer<float> depthMapTemp;
 RWStructuredBuffer<float> heightmap;
 RWTexture2D<float4> colors;
 RWTexture2D<float4> colorsTerrain;
@@ -99,13 +101,29 @@ void UpdateHeights (uint3 id : SV_DispatchThreadID)
     float deltavolume = influx - outflux;
 
     depthMap[vert] += dt * deltavolume / a;
-    float columnHeight = depthMap[vert] + heightmap[vert] - 0.1;
-    vertices[vert] = float3(terrainVertices[vert].x, columnHeight, terrainVertices[vert].z);
 
     if (clearWater)
     {
         depthMap[vert] = 0;
     }
+
+    depthMapTemp[vert] = depthMap[vert];
+}
+
+[numthreads(8,8,1)]
+void Smoothing (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= xSize || id.y >= zSize)
+        return;
+
+    int vert = id.x + id.y * xSize;
+    float top = id.y < (zSize - 1) ? (depthMapTemp[vert + xSize]) : depthMapTemp[vert];
+    float bottom = id.y > 0 ? (depthMapTemp[vert - xSize]) : depthMapTemp[vert];
+    float left = id.x > 0 ? (depthMapTemp[vert - 1]) : depthMapTemp[vert];
+    float right = id.x < (xSize - 1) ? (depthMapTemp[vert + 1]) : depthMapTemp[vert];
+    float averageNeighbourDepth = (top + bottom + left + right) / 4;
+    float diff = depthMapTemp[vert] - averageNeighbourDepth;
+    depthMap[vert] -= diff * 1 * dt;
 }
 
 [numthreads(8,8,1)]
@@ -118,15 +136,6 @@ void UpdatePlane (uint3 id : SV_DispatchThreadID)
     float columnHeight = depthMap[vert] + heightmap[vert] - 0.1;
     vertices[vert] = float3(terrainVertices[vert].x, columnHeight, terrainVertices[vert].z);
     //depthMap[vert] = max(depthMap[vert] - 0.5 * dt, 0);
-
-    // Smoothing
-    // float top = id.y < (zSize - 1) ? (depthMap[vert + xSize]) : depthMap[vert];
-    // float bottom = id.y > 0 ? (depthMap[vert - xSize]) : depthMap[vert];
-    // float left = id.x > 0 ? (depthMap[vert - 1]) : depthMap[vert];
-    // float right = id.x < (xSize - 1) ? (depthMap[vert + 1]) : depthMap[vert];
-    // float averageNeighbourDepth = (top + bottom + left + right) / 4;
-    // float diff = depthMap[vert] - averageNeighbourDepth;
-    // depthMap[vert] -= diff * 5 * dt;
 }
 
 [numthreads(8,8,1)]
