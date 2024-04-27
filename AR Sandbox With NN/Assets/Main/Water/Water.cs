@@ -107,6 +107,12 @@ public class Water : MonoBehaviour
         {
             WaterCS.Dispatch(4, 512/8, 424/8, 1);
         }
+        if (Input.GetKey(KeyCode.Space))
+        {
+            WaterCS.SetInt("handPositionX", xSize/2);
+            WaterCS.SetInt("handPositionY", zSize/2);
+            WaterCS.Dispatch(4, 512/8, 424/8, 1);
+        }
         WaterCS.Dispatch(0, 512/8, 424/8, 1);
         WaterCS.Dispatch(1, 512/8, 424/8, 1);
         WaterCS.Dispatch(3, 512/8, 424/8, 1);
