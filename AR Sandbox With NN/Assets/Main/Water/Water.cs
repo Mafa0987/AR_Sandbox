@@ -152,6 +152,7 @@ public class Water : MonoBehaviour
         WaterCS.SetBuffer(1, "vertices", verticesBuffer);
         WaterCS.SetBuffer(0, "fluxMap", fluxMapBuffer);
         WaterCS.SetBuffer(1, "fluxMap", fluxMapBuffer);
+        WaterCS.SetBuffer(6, "fluxMap", fluxMapBuffer);
         WaterCS.SetBuffer(0, "heightmap", terrain.heightBuffer);
         WaterCS.SetBuffer(1, "heightmap", terrain.heightBuffer);
         WaterCS.SetBuffer(0, "depthMap", depthMapBuffer);
