@@ -110,19 +110,6 @@ public class TerrainGen : MonoBehaviour
         computeShader.Dispatch(3, 512/8, 424/8, 1);
         heightBuffer.GetData(heightmap);
 
-        //temp
-        float sum = 0;
-        for (int i = 0; i < heightmap.Length; i++)
-        {
-            float height_norm = (heightmap[i] - minTerrainHeight) / (maxTerrainHeight - minTerrainHeight);
-            if (height_norm < 0.4){
-                sum += 1;
-            }
-        }
-        landWaterRatio = sum / heightmap.Length;
-        Debug.Log(landWaterRatio);
-        //
-
         //Rest of the calculations
         minTerrainHeight = calibration.minTerrainHeight;
         maxTerrainHeight = calibration.maxTerrainHeight;

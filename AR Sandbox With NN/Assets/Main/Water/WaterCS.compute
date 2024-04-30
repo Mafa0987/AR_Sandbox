@@ -124,7 +124,7 @@ void Smoothing (uint3 id : SV_DispatchThreadID)
     float averageNeighbourDepth = (top + bottom + left + right) / 4;
     float diff = depthMapTemp[vert] - averageNeighbourDepth;
     depthMap[vert] -= diff * 1 * dt;
-    //fluxMap[vert] = fluxMap[vert] * 0.999 * 50 * dt;
+    //fluxMap[vert] = fluxMap[vert] * pow(0.999, (50 * dt));
 }
 
 [numthreads(8,8,1)]

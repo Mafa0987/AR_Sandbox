@@ -72,20 +72,6 @@ public class Water : MonoBehaviour
         WaterCS.Dispatch(2, 512/8, 424/8, 1);
         verticesBuffer.GetData(vertices);
 
-        // temp
-        float depthSum = 0;
-        for (int i = 0; i < vertices.Length; i++)
-        {
-            float depth = vertices[i].y - terrain.heightmap[i] + 0.1f;
-            if (depth > 0.2f)
-            {
-                depthSum += 1;
-            }
-        }
-        float percentage = depthSum / vertices.Length;
-        Debug.Log("rain" + percentage);
-        //
-
         UpdateMesh();
         waterNormals.SetData(normals);
         WaterCS.Dispatch(5, (int)Mathf.Ceil(xSize*4/8), (int)Mathf.Ceil(zSize*4/8), 1);
@@ -106,7 +92,10 @@ public class Water : MonoBehaviour
         
         if (nn.predictedLabel == "Open Hand")
         {
-            WaterCS.Dispatch(4, 512/8, 424/8, 1);
+            if (nn.probability > 0.7f)
+            {
+                WaterCS.Dispatch(4, 512/8, 424/8, 1);
+            }
         }
         if (Input.GetKey(KeyCode.Space))
         {
