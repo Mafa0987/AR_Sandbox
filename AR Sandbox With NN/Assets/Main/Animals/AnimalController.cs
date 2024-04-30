@@ -5,8 +5,9 @@ using UnityEngine;
 
 public class AnimalController : MonoBehaviour
 {
-    public Transform[] fish;
-    public Transform[] deer;
+    public GameObject[] fish;
+    public GameObject[] deer;
+    public Water water;
     public TerrainGen terrain;
     public Transform terrainTransform;
     public Calibration calibration;
@@ -31,13 +32,13 @@ public class AnimalController : MonoBehaviour
         {
             int x = Random.Range(0, terrain.xSize);
             int z = Random.Range(0, terrain.zSize);
-            fish[i].localPosition = new Vector3(x, 1000, z);
+            fish[i].transform.localPosition = new Vector3(x, 1000, z);
         }
         for (int i = 0; i < deer.Length; i++)
         {
             int x = Random.Range(0, terrain.xSize);
             int z = Random.Range(0, terrain.zSize);
-            deer[i].localPosition = new Vector3(x, 1000, z);
+            deer[i].transform.localPosition = new Vector3(x, 1000, z);
         }
     }
 
@@ -46,31 +47,34 @@ public class AnimalController : MonoBehaviour
     {
         for (int i = 0; i < fish.Length; i++)
         {
-            MoveAnimal(fish[i], 0.45f, 0f, ref fishRotateVal[i], ref survivalTimerFish[i], ref deadFish[i]);
+            MoveAnimal(fish[i], 0.45f, 0f);
         }   
         for (int i = 0; i < deer.Length; i++)
         {
-            MoveAnimal(deer[i], 0.7f, 0.5f, ref deerRotateVal[i], ref survivalTimerDeer[i], ref deadDeer[i]);
+            MoveAnimal(deer[i], 0.7f, 0.5f);
         }
     }
 
-    void MoveAnimal(Transform animal, float upperLim, float lowerLim, ref int rotateVal, ref float survivalTimer, ref bool dead)
+    void MoveAnimal(GameObject animalObject, float upperLim, float lowerLim)
     {
+        Transform animal = animalObject.transform;
+        Animal guy = animalObject.GetComponent<Animal>();
         float currentHeight = terrain.heightmap[Mathf.RoundToInt(animal.localPosition.x) + terrain.xSize * Mathf.RoundToInt(animal.localPosition.z)];
         float currentHeightNorm = (currentHeight - calibration.minTerrainHeight) / (calibration.maxTerrainHeight - calibration.minTerrainHeight);
-        if (currentHeightNorm < lowerLim || currentHeightNorm > upperLim)
+        bool inRain = water.depthMap[Mathf.RoundToInt(animal.localPosition.x) + terrain.xSize * Mathf.RoundToInt(animal.localPosition.z)] > 10;
+        if (((currentHeightNorm < lowerLim || currentHeightNorm > upperLim) && !(guy.species == "Fish" && inRain)) || (guy.species == "Deer" && inRain))
         {
-            survivalTimer += Time.deltaTime;
-            dead = survivalTimer >= 5;
+            guy.survivalTimer += Time.deltaTime;
+            guy.dead = guy.survivalTimer >= 5;
         }
         else
         {
-            if (dead)
+            if (guy.dead)
                 animal.localScale = new Vector3(25, 25, 25);
-            dead = false;
-            survivalTimer = 0;
+            guy.dead = false;
+            guy.survivalTimer = 0;
         }
-        if (dead)
+        if (guy.dead)
         {
             animal.localScale = new Vector3(0, 0, 0);
             AdjustPosition(animal);
@@ -89,7 +93,8 @@ public class AnimalController : MonoBehaviour
         }
         height = terrain.heightmap[nextLook.x + terrain.xSize * nextLook.z];
         height = (height - calibration.minTerrainHeight) / (calibration.maxTerrainHeight-calibration.minTerrainHeight);
-        if (height < upperLim && height > lowerLim)
+        bool nextInRain = water.depthMap[nextLook.x + terrain.xSize * nextLook.z] > 10;
+        if (((height < upperLim && height > lowerLim) || (guy.species == "Fish" && nextInRain)) && !(guy.species == "Deer" && nextInRain))
         {
             if (nn.predictedLabel != "No Hand")
             {
@@ -98,7 +103,7 @@ public class AnimalController : MonoBehaviour
                 {
                     Vector3 newDirection = Vector3.RotateTowards(animal.forward, targetDirection, 100 * Time.deltaTime, 0.0f);
                     animal.localRotation = Quaternion.LookRotation(newDirection);
-                    rotateVal = 0;
+                    guy.rotateVal = 0;
                     animal.localPosition = nextStep;
                     animal.position = new Vector3(animal.position.x, currentHeight, animal.position.z);
                     animal.eulerAngles = new Vector3(animal.eulerAngles.x, animal.eulerAngles.y + Random.Range(-100 * Time.deltaTime, 100 * Time.deltaTime), animal.eulerAngles.z);
@@ -106,7 +111,7 @@ public class AnimalController : MonoBehaviour
                     return;
                 }
             }
-            rotateVal = 0;
+            guy.rotateVal = 0;
             animal.localPosition = nextStep;
             animal.position = new Vector3(animal.position.x, currentHeight, animal.position.z);
             animal.eulerAngles = new Vector3(animal.eulerAngles.x, animal.eulerAngles.y + Random.Range(-100 * Time.deltaTime, 100 * Time.deltaTime), animal.eulerAngles.z);
@@ -124,7 +129,8 @@ public class AnimalController : MonoBehaviour
             if (!outOfBoundsLeft){
                 float heightLeft = terrain.heightmap[Mathf.RoundToInt(nextLookLeft.x) + terrain.xSize * Mathf.RoundToInt(nextLookLeft.z)];
                 heightLeft = (heightLeft - calibration.minTerrainHeight) / (calibration.maxTerrainHeight - calibration.minTerrainHeight);
-                leftWithinEnv = heightLeft < upperLim && heightLeft > lowerLim;
+                bool leftInRain = water.depthMap[nextLookLeft.x + terrain.xSize * nextLookLeft.z] > 10;
+                leftWithinEnv = ((heightLeft < upperLim && heightLeft > lowerLim) || (guy.species == "Fish" && leftInRain)) && !(guy.species == "Deer" && leftInRain);
             }
             else{
                 leftWithinEnv = false;
@@ -132,16 +138,17 @@ public class AnimalController : MonoBehaviour
             if (!outOfBoundsRight){
                 float heightRight = terrain.heightmap[Mathf.RoundToInt(nextLookRight.x) + terrain.xSize * Mathf.RoundToInt(nextLookRight.z)];
                 heightRight = (heightRight - calibration.minTerrainHeight) / (calibration.maxTerrainHeight - calibration.minTerrainHeight);
-                rightWithinEnv = heightRight < upperLim && heightRight > lowerLim;
+                bool rightInRain = water.depthMap[nextLookRight.x + terrain.xSize * nextLookRight.z] > 10;
+                rightWithinEnv = ((heightRight < upperLim && heightRight > lowerLim) || (guy.species == "Fish" && rightInRain)) && !(guy.species == "Deer" && rightInRain);
             }
             else{
                 rightWithinEnv = false;
             }
-            if (rotateVal == 0)
-                rotateVal = leftWithinEnv && !rightWithinEnv ? -100 : 100;
+            if (guy.rotateVal == 0)
+                guy.rotateVal = leftWithinEnv && !rightWithinEnv ? -100 : 100;
             Vector3 nextStep2 = animal.localPosition + rotation * Time.deltaTime * 10f;
             animal.localPosition = nextStep2;
-            animal.eulerAngles = new Vector3(animal.eulerAngles.x, animal.eulerAngles.y + rotateVal * Time.deltaTime, animal.eulerAngles.z);
+            animal.eulerAngles = new Vector3(animal.eulerAngles.x, animal.eulerAngles.y + guy.rotateVal * Time.deltaTime, animal.eulerAngles.z);
         }
         AdjustPosition(animal);
     }

@@ -76,7 +76,7 @@ consequences occur.";
         float depthSum = 0;
         for (int i = 0; i < water.vertices.Length; i++)
         {
-            float depth = water.vertices[i].y - terrain.heightmap[i] + 0.1f;
+            float depth = water.depthMap[i];
             if (depth > 5f)
             {
                 depthSum += 1;

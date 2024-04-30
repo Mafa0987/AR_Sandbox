@@ -10,7 +10,7 @@ public class Water : MonoBehaviour
     Calibration calibration;
     public Vector3[] vertices;
     float[] heightMap;
-    float[] depthMap;
+    public float[] depthMap;
     Vector4[] fluxMap;
     RenderTexture colors;
     Vector2[] uvs;
@@ -71,6 +71,7 @@ public class Water : MonoBehaviour
         }
         WaterCS.Dispatch(2, 512/8, 424/8, 1);
         verticesBuffer.GetData(vertices);
+        depthMapBuffer.GetData(depthMap);
 
         UpdateMesh();
         waterNormals.SetData(normals);
