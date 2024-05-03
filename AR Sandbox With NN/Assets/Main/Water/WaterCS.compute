@@ -11,8 +11,11 @@ float xSize;
 float zSize;
 float dt;
 float a;
+float maxTerrainHeight;
+float minTerrainHeight;
 
 bool clearWater;
+bool rainEnabled;
 
 RWStructuredBuffer<float3> vertices;
 RWStructuredBuffer<float3> terrainVertices;
@@ -125,6 +128,13 @@ void Smoothing (uint3 id : SV_DispatchThreadID)
     float diff = depthMapTemp[vert] - averageNeighbourDepth;
     depthMap[vert] -= diff * 1 * dt;
     //fluxMap[vert] = fluxMap[vert] * pow(0.999, (50 * dt));
+    if (!rainEnabled)
+    {
+        float terrainHeight = (heightmap[vert] - minTerrainHeight)/(maxTerrainHeight - minTerrainHeight);
+        if (terrainHeight > 0.7){
+            depthMap[vert] = 0;
+        }
+    }
 }
 
 [numthreads(8,8,1)]

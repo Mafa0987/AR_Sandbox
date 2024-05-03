@@ -29,6 +29,10 @@ public class Water : MonoBehaviour
     public float c = 1f;
     public float a = 1f;
 
+    public bool addRain = false;
+
+    public bool rainEnabled = false;
+
     public ComputeShader WaterCS;
     ComputeBuffer verticesBuffer;
     ComputeBuffer fluxMapBuffer;
@@ -90,15 +94,18 @@ public class Water : MonoBehaviour
         WaterCS.SetFloat("a", a);
         WaterCS.SetInt("handPositionX", nn.x_cord);
         WaterCS.SetInt("handPositionY", nn.y_cord);
+        WaterCS.SetFloat("maxTerrainHeight", terrain.maxTerrainHeight);
+        WaterCS.SetFloat("minTerrainHeight", terrain.minTerrainHeight);
+        WaterCS.SetBool("rainEnabled", rainEnabled);
         
         if (nn.predictedLabel == "Open Hand")
         {
-            if (nn.probability > 0.7f)
+            if (rainEnabled)
             {
                 WaterCS.Dispatch(4, 512/8, 424/8, 1);
             }
         }
-        if (Input.GetKey(KeyCode.Space))
+        if (Input.GetKey(KeyCode.Space) || addRain)
         {
             WaterCS.SetInt("handPositionX", xSize/2);
             WaterCS.SetInt("handPositionY", zSize/2);
@@ -145,6 +152,7 @@ public class Water : MonoBehaviour
         WaterCS.SetBuffer(6, "fluxMap", fluxMapBuffer);
         WaterCS.SetBuffer(0, "heightmap", terrain.heightBuffer);
         WaterCS.SetBuffer(1, "heightmap", terrain.heightBuffer);
+        WaterCS.SetBuffer(6, "heightmap", terrain.heightBuffer);
         WaterCS.SetBuffer(0, "depthMap", depthMapBuffer);
         WaterCS.SetBuffer(1, "depthMap", depthMapBuffer);
         WaterCS.SetBuffer(3, "depthMap", depthMapBuffer);

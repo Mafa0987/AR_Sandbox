@@ -30,8 +30,8 @@ public class AnimalController : MonoBehaviour
         deadDeer = new bool[deer.Length];
         for (int i = 0; i < fish.Length; i++)
         {
-            int x = Random.Range(0, terrain.xSize);
-            int z = Random.Range(0, terrain.zSize);
+            int x = Random.Range(5, terrain.xSize-5);
+            int z = Random.Range(5, terrain.zSize-5);
             fish[i].transform.localPosition = new Vector3(x, 1000, z);
         }
         for (int i = 0; i < deer.Length; i++)
@@ -47,15 +47,15 @@ public class AnimalController : MonoBehaviour
     {
         for (int i = 0; i < fish.Length; i++)
         {
-            MoveAnimal(fish[i], 0.45f, 0f);
+            MoveAnimal(fish[i], 0.45f, 0f, 10f);
         }   
         for (int i = 0; i < deer.Length; i++)
         {
-            MoveAnimal(deer[i], 0.7f, 0.5f);
+            MoveAnimal(deer[i], 0.7f, 0.5f, 10f);
         }
     }
 
-    void MoveAnimal(GameObject animalObject, float upperLim, float lowerLim)
+    void MoveAnimal(GameObject animalObject, float upperLim, float lowerLim, float speed)
     {
         Transform animal = animalObject.transform;
         Animal guy = animalObject.GetComponent<Animal>();
@@ -82,7 +82,7 @@ public class AnimalController : MonoBehaviour
         }
         animal.localScale = new Vector3(25, 25, 25);       
         Vector3 rotation = animal.forward;
-        Vector3 nextStep = animal.localPosition + rotation * Time.deltaTime * 20f;
+        Vector3 nextStep = animal.localPosition + rotation * Time.deltaTime * speed;
         Vector3Int nextLook = Vector3Int.RoundToInt(animal.localPosition + rotation * 20);
         bool outOfBounds = nextLook.x >= terrain.xSize || nextLook.z >= terrain.zSize || nextLook.x <= 0 || nextLook.z <= 0;
         if (outOfBounds)
@@ -101,7 +101,7 @@ public class AnimalController : MonoBehaviour
                 Vector3 targetDirection = new Vector3(animal.localPosition.x - nn.x_cord, animal.forward.y, animal.localPosition.z - nn.y_cord);
                 if (targetDirection.magnitude < 100.0)
                 {
-                    Vector3 newDirection = Vector3.RotateTowards(animal.forward, targetDirection, 100 * Time.deltaTime, 0.0f);
+                    Vector3 newDirection = Vector3.RotateTowards(animal.forward, targetDirection, 1 * Time.deltaTime, 0.0f);
                     animal.localRotation = Quaternion.LookRotation(newDirection);
                     guy.rotateVal = 0;
                     animal.localPosition = nextStep;
@@ -146,7 +146,7 @@ public class AnimalController : MonoBehaviour
             }
             if (guy.rotateVal == 0)
                 guy.rotateVal = leftWithinEnv && !rightWithinEnv ? -100 : 100;
-            Vector3 nextStep2 = animal.localPosition + rotation * Time.deltaTime * 10f;
+            Vector3 nextStep2 = animal.localPosition + rotation * Time.deltaTime * speed/2;
             animal.localPosition = nextStep2;
             animal.eulerAngles = new Vector3(animal.eulerAngles.x, animal.eulerAngles.y + guy.rotateVal * Time.deltaTime, animal.eulerAngles.z);
         }
