@@ -29,7 +29,7 @@ public class UserTest : MonoBehaviour
         {
             case 0:
 
-                water.rainEnabled = false;
+                water.rainEnabled = true;
                 text.text = @"Once upon a time, in a augmented sandbox world,
 an intricate ecosystem thrive where 
 every grain of sand represented life.
