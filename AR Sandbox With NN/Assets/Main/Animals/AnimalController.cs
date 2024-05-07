@@ -19,6 +19,7 @@ public class AnimalController : MonoBehaviour
     float[] survivalTimerDeer;
     bool[] deadFish;
     bool[] deadDeer;
+    public float deerUpperLimit = 0.7f;
     // Start is called before the first frame update
     void Start()
     {
@@ -51,7 +52,7 @@ public class AnimalController : MonoBehaviour
         }   
         for (int i = 0; i < deer.Length; i++)
         {
-            MoveAnimal(deer[i], 0.7f, 0.5f, 10f);
+            MoveAnimal(deer[i], deerUpperLimit, 0.5f, 10f);
         }
     }
 

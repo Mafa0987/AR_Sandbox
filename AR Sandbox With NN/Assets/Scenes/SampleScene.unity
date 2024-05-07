@@ -4536,35 +4536,11 @@ MonoBehaviour:
   - eventID: 2
     callback:
       m_PersistentCalls:
-        m_Calls:
-        - m_Target: {fileID: 315950283}
-          m_TargetAssemblyTypeName: UserTest, Assembly-CSharp
-          m_MethodName: TextClick
-          m_Mode: 1
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-            m_IntArgument: 0
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 2
+        m_Calls: []
   - eventID: 3
     callback:
       m_PersistentCalls:
-        m_Calls:
-        - m_Target: {fileID: 315950283}
-          m_TargetAssemblyTypeName: UserTest, Assembly-CSharp
-          m_MethodName: TextRelease
-          m_Mode: 1
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-            m_IntArgument: 0
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 2
+        m_Calls: []
 --- !u!114 &1058324146
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5520,6 +5496,7 @@ MonoBehaviour:
   vertices: []
   depthMap: []
   nn: {fileID: 1313332448}
+  clearWater: 0
   waterMaterial: {fileID: 2100000, guid: 7f27445cdb995b348990cbfae378980b, type: 2}
   terrain: {fileID: 847163006}
   xSize: 512

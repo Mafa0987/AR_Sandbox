@@ -43,6 +43,8 @@ The delicate existence of life in the AR Sandbox
 depended on the balance between the land and water.";
                 if (Input.GetKeyDown(KeyCode.Return))
                 {
+                    water.clearWater = true;
+                    water.WaterCS.SetBool("clearWater", water.clearWater);
                     level++;
                 }
                 break;
@@ -141,7 +143,7 @@ Restore land levels to sustain their habitat.
    - The habitat has more than enough fishes in the sea.
    - You have 30 seconds to revive the animals.";
                 timer += Time.deltaTime;
-                if (timer > 5)
+                if (timer > 10)
                 {
                     timer = 0;
                     level++;
@@ -149,6 +151,7 @@ Restore land levels to sustain their habitat.
                 break;
 
             case 7:
+                animalController.deerUpperLimit = 1.0f;
                 water.addRain = true;
                 timer += Time.deltaTime;
                 int time = (int)timer;
@@ -196,6 +199,7 @@ the animals have vanished.";
                 break;
 
             case 9:
+                image.color = new Color(0, 0.8f, 0, 1);
                 water.addRain = false;
                 text.text = @"Congratulations! 
 Through your careful management, 
@@ -229,42 +233,42 @@ ensuring the continued harmony of this digital world.";
         //
 
 
-        if (drag)
-        {
-            textTransform.position = Input.mousePosition;
-            if (Input.mouseScrollDelta.y > 0)
-            {
-                if (Input.GetKey(KeyCode.LeftAlt))
-                {
-                    text.fontSize += 1;
-                }
-                else
-                {
-                    textTransform.eulerAngles += new Vector3(0, 0, 10);
+        // if (drag)
+        // {
+        //     textTransform.position = Input.mousePosition;
+        //     if (Input.mouseScrollDelta.y > 0)
+        //     {
+        //         if (Input.GetKey(KeyCode.LeftAlt))
+        //         {
+        //             text.fontSize += 1;
+        //         }
+        //         else
+        //         {
+        //             textTransform.eulerAngles += new Vector3(0, 0, 10);
 
-                }
-            }
-            else if (Input.mouseScrollDelta.y < 0)
-            {
-                if (Input.GetKey(KeyCode.LeftAlt))
-                {
-                    text.fontSize -= 1;
-                }
-                else
-                {
-                    textTransform.eulerAngles -= new Vector3(0, 0, 10);
-                }
-            }
-        }
+        //         }
+        //     }
+        //     else if (Input.mouseScrollDelta.y < 0)
+        //     {
+        //         if (Input.GetKey(KeyCode.LeftAlt))
+        //         {
+        //             text.fontSize -= 1;
+        //         }
+        //         else
+        //         {
+        //             textTransform.eulerAngles -= new Vector3(0, 0, 10);
+        //         }
+        //     }
+        // }
     }
 
-    public void TextClick()
-    {
-        drag = true;
-    }
+    // public void TextClick()
+    // {
+    //     drag = true;
+    // }
 
-    public void TextRelease()
-    {
-        drag = false;
-    }
+    // public void TextRelease()
+    // {
+    //     drag = false;
+    // }
 }

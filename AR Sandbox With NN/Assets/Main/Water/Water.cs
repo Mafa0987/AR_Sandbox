@@ -16,7 +16,7 @@ public class Water : MonoBehaviour
     Vector2[] uvs;
     public NeuralNetwork nn;
 
-    bool clearWater = false;
+    public bool clearWater = false;
 
     public Material waterMaterial;
 
