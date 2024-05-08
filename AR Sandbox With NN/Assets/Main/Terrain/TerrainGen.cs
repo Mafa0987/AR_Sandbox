@@ -32,7 +32,7 @@ public class TerrainGen : MonoBehaviour
     //test average noise reduction
     ComputeBuffer averageBuffer;
     int N = 512 * 424;
-    int num_arrays = 60;
+    public int num_arrays = 60;
     int sampleIndex = 0;
     ComputeBuffer sampleSums;
     ComputeBuffer squaredSums;

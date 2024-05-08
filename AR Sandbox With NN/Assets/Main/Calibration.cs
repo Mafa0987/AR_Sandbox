@@ -26,6 +26,7 @@ public class Calibration : MonoBehaviour
     Slider zCutSlider2;
     public InputField zCutInput2;
     public InputField currentMinHeight;
+    public InputField num_arrays_input;
     public float maxTerrainHeight = 10;
     public float minTerrainHeight = 0f;
     public float depthShiftx = 0;
@@ -117,6 +118,16 @@ public class Calibration : MonoBehaviour
         {
             Camera.eulerAngles = new Vector3(90, PlayerPrefs.GetFloat("rotation"), 0);
         }
+        if (PlayerPrefs.HasKey("num_arrays"))
+        {
+            TerrainGen terrainGen = terrainpos.GetComponent<TerrainGen>();
+            terrainGen.num_arrays = PlayerPrefs.GetInt("num_arrays");
+            num_arrays_input.text = terrainGen.num_arrays.ToString();
+        }
+        else
+        {
+            num_arrays_input.text = "60";
+        }
     }
 
     // Update is called once per frame
@@ -166,6 +177,8 @@ public class Calibration : MonoBehaviour
             zCutInput2.onEndEdit.AddListener((v) => {
                 zCutNew.y = int.Parse(v);
                 zCutSlider2.value = zCutNew.y;});
+            num_arrays_input.onEndEdit.AddListener((v) => {
+                PlayerPrefs.SetInt("num_arrays", int.Parse(v));});
         }
         CalibrateTransform();
 
