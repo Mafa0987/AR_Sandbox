@@ -4601,6 +4601,7 @@ MonoBehaviour:
   zCutInput1: {fileID: 725930609}
   zCutInput2: {fileID: 46506044}
   currentMinHeight: {fileID: 1954533276}
+  num_arrays_input: {fileID: 990660417}
   maxTerrainHeight: 10
   minTerrainHeight: 0
   depthShiftx: 0
