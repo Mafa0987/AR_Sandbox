@@ -6,16 +6,20 @@ using UnityEngine.UI;
 public class UserTest : MonoBehaviour
 {
     public RectTransform textTransform;
+    public AudioSource audioSource;
+    public AudioClip[] ttsClips;
+    public AudioSource waterAmbiance;
     public TMP_Text text;
     public Image image;
     public TerrainGen terrain;
     public Water water;
     bool drag = false;
-    int level = 0;
+    int level = -1;
     float rainPercentage = 0;
     float landWaterRatio = 0;
     float timer = 0;
     public AnimalController animalController;
+    bool audioPlayed = false;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -27,9 +31,21 @@ public class UserTest : MonoBehaviour
     {
         switch(level)
         {
+            case -1:
+                water.rainEnabled = true;
+                text.text = @"Welcome to AR Sandbox Symbiosis game!";
+                if (Input.GetKeyDown(KeyCode.Return))
+                {
+                    water.clearWater = true;
+                    water.WaterCS.SetBool("clearWater", water.clearWater);
+                    level++;
+                    audioSource.clip = ttsClips[0];
+                    audioSource.Play();
+                }
+                break;
             case 0:
 
-                water.rainEnabled = true;
+                water.rainEnabled = false;
                 text.text = @"Once upon a time, in a augmented sandbox world,
 an intricate ecosystem thrive where 
 every grain of sand represented life.
@@ -39,13 +55,23 @@ Below this threshold, the sand transformed
 into shimmering ponds,
 teeming with colorful fishes. 
 
+In this AR Sandbox Symbiosis game, you have to create a habitat balance between fishes and animals.
+
 The delicate existence of life in the AR Sandbox 
 depended on the balance between the land and water.";
+                timer += Time.deltaTime;
+                if (timer > 25)
+                {
+                    timer = 0;
+                    level++;
+                    audioSource.clip = ttsClips[1];
+                    audioSource.Play();
+                }
                 if (Input.GetKeyDown(KeyCode.Return))
                 {
-                    water.clearWater = true;
-                    water.WaterCS.SetBool("clearWater", water.clearWater);
                     level++;
+                    audioSource.clip = ttsClips[1];
+                    audioSource.Play();
                 }
                 break;
 
@@ -75,10 +101,14 @@ Restore harmony before irreversible consequences occur.
                 if (fishAlive > 2)
                 {
                     level++;
+                    audioSource.clip = ttsClips[2];
+                    audioSource.Play();
                 }
                 else if (Input.GetKeyDown(KeyCode.Return))
                 {
                     level++;
+                    audioSource.clip = ttsClips[2];
+                    audioSource.Play();
                 }
                 break;
 
@@ -86,28 +116,34 @@ Restore harmony before irreversible consequences occur.
                 water.rainEnabled = false;
                 text.text = @"Congratulations! 
 The balance of life is achieved. 
-You are now in the next level";
+You are now at the next level";
                 timer += Time.deltaTime;
                 if (timer > 5)
                 {
                     timer = 0;
                     level++;
+                    audioSource.clip = ttsClips[3];
+                    audioSource.Play();
                 }
                 break;
             case 3:
 
                 water.rainEnabled = true;
-                text.text = @"The fishes and animals need rain 
+                text.text = @"The fish and animals need rain 
 to grow more in number.
-   - Add rain to achieve that.";
+   - Add rain to using your hand to achieve that.";
 
                 if (rainPercentage > 0.4)
                 {
                     level++;
+                    audioSource.clip = ttsClips[4];
+                    audioSource.Play();
                 }
                 else if (Input.GetKeyDown(KeyCode.Return))
                 {
                     level++;
+                    audioSource.clip = ttsClips[4];
+                    audioSource.Play();
                 }
                 break;
 
@@ -121,32 +157,37 @@ the balance of life is achieved.";
                 {
                     timer = 0;
                     level++;
+                    audioSource.clip = ttsClips[5];
+                    audioSource.Play();
                 }
                 break;
 
             case 5:
                 image.color = new Color(1, 0, 0, 1);
-                text.text = @"Storm is currently in the habitat!";
+                text.text = @"A storm is currently in the habitat!";
                 timer += Time.deltaTime;
-                if (timer > 5)
+                if (timer > 3)
                 {
                     timer = 0;
                     level++;
+                    audioSource.clip = ttsClips[6];
+                    audioSource.Play();
                 }
                 break;
 
             case 6:
                 text.text = @"Ground depletion detected! 
 Animal populations are dwindling due to excessive rain. 
-Restore land levels to sustain their habitat.
 
    - The habitat has more than enough fishes in the sea.
-   - You have 30 seconds to revive the animals.";
+   - You have 30 seconds to keep three ground animals.";
                 timer += Time.deltaTime;
-                if (timer > 10)
+                if (timer > 13)
                 {
                     timer = 0;
                     level++;
+                    audioSource.clip = ttsClips[7];
+                    audioSource.Play();
                 }
                 break;
 
@@ -160,6 +201,12 @@ Restore land levels to sustain their habitat.
    - Time remaining: " + (30 - time) + " seconds.";
                 if (timer > 20)
                 {
+                    if (!audioPlayed)
+                    {
+                        audioSource.clip = ttsClips[8];
+                        audioSource.Play();
+                        audioPlayed = true;
+                    }
                     text.text = @"Emergency: Ecosystem critical! 
 Imbalance between water and land 
 is causing widespread devastation. 
@@ -169,6 +216,7 @@ to prevent total collapse of the ecosystem
                 }
                 if (timer > 30)
                 {
+                    audioPlayed = false;
                     timer = 0;
                     int deerAlive = 0;
                     for (int i = 0; i < animalController.deer.Length; i++)
@@ -182,10 +230,14 @@ to prevent total collapse of the ecosystem
                     if (deerAlive > 2)
                     {                       
                         level = 9;
+                        audioSource.clip = ttsClips[9];
+                        audioSource.Play();
                     }
                     else
                     {
                         level = 8;
+                        audioSource.clip = ttsClips[10];
+                        audioSource.Play();
                     }
                 }
                 break;
@@ -224,13 +276,21 @@ ensuring the continued harmony of this digital world.";
         for (int i = 0; i < water.vertices.Length; i++)
         {
             float depth = water.depthMap[i];
-            if (depth > 5f)
+            if (depth > 1f)
             {
                 depthSum += 1;
             }
         }
         rainPercentage = depthSum / water.vertices.Length;
         //
+
+        waterAmbiance.volume = rainPercentage;
+
+        if (!waterAmbiance.isPlaying)
+        {
+            waterAmbiance.Play();
+        }
+
 
 
         // if (drag)
