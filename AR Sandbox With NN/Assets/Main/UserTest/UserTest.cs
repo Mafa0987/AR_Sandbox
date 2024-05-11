@@ -53,9 +53,10 @@ every grain of sand represented life.
 The sand formed the ground, where tiny animals roamed. 
 Below this threshold, the sand transformed
 into shimmering ponds,
-teeming with colorful fishes. 
+teeming with colorful fish. 
 
-In this AR Sandbox Symbiosis game, you have to create a habitat balance between fishes and animals.
+In this AR Sandbox Symbiosis game, you have 
+to create a habitat balance between fish and animals.
 
 The delicate existence of life in the AR Sandbox 
 depended on the balance between the land and water.";
@@ -82,9 +83,7 @@ depended on the balance between the land and water.";
                 
 Restore harmony before irreversible consequences occur.
 
-   - In this AR Sandbox Symbiosis game, 
-     you have to create a habitat balance between fishes and animals.
-   - Hint: More fishes will thrive on medium blue sea level 
+   - Hint: More fish will thrive on medium blue sea level 
      and more animals thrive on a greener ground.
    - Move the sand level to the right balance between ground 
      and water level.";
@@ -179,7 +178,7 @@ the balance of life is achieved.";
                 text.text = @"Ground depletion detected! 
 Animal populations are dwindling due to excessive rain. 
 
-   - The habitat has more than enough fishes in the sea.
+   - The habitat has more than enough fish in the sea.
    - You have 30 seconds to keep three ground animals.";
                 timer += Time.deltaTime;
                 if (timer > 13)
