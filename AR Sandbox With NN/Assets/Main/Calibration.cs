@@ -197,7 +197,7 @@ public class Calibration : MonoBehaviour
             float minDist = float.MaxValue;
             for (int k = 0; k < 4; k++)
             {
-                float distance = Vector3.Distance(terrainPosition, corners[k]);
+                float distance = Vector2.Distance(new Vector2(terrainPosition.x, terrainPosition.z), new Vector2(corners[k].x, corners[k].z));
                 if (distance < minDist)
                 {
                     minDist = distance;
