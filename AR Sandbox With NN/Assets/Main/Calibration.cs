@@ -429,6 +429,12 @@ public class Calibration : MonoBehaviour
         }
     }
 
+    public void ResetAll()
+    {
+        PlayerPrefs.DeleteAll();
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
     void Save()
     {
         Debug.Log("Saving calibration");
