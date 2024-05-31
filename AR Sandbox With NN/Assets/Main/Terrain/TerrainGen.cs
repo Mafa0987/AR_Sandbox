@@ -62,6 +62,8 @@ public class TerrainGen : MonoBehaviour
     //public Water water;
     public bool update = false;
 
+    ComputeBuffer heightBufferSmooth;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -108,6 +110,7 @@ public class TerrainGen : MonoBehaviour
         //Noise reduction
         //Cuts heightmap and converts to float
         computeShader.Dispatch(3, 512/8, 424/8, 1);
+        computeShader.Dispatch(4, 512/8, 424/8, 1);
         heightBuffer.GetData(heightmap);
 
         //Rest of the calculations
@@ -189,6 +192,11 @@ public class TerrainGen : MonoBehaviour
         computeShader.SetBuffer(3, "sampleSums", sampleSums);
         computeShader.SetBuffer(2, "squaredSums", squaredSums);
         computeShader.SetBuffer(3, "squaredSums", squaredSums);
+
+        heightBufferSmooth = new ComputeBuffer(heightmap.Length, sizeof(float));
+        computeShader.SetBuffer(0, "heightmapSmooth", heightBufferSmooth);
+        computeShader.SetBuffer(4, "heightmap", heightBuffer);
+        computeShader.SetBuffer(4, "heightmapSmooth", heightBufferSmooth);
     }
 
     void CreateTriangles()

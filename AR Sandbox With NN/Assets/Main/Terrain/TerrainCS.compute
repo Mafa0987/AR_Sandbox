@@ -3,12 +3,13 @@
 #pragma kernel CSContour
 #pragma kernel ShortToInt
 #pragma kernel HMProcessing
-//#pragma kernel Refraction
+#pragma kernel Smoothing
 
 #define norm(height) ((height-minTerrainHeight)/(maxTerrainHeight-minTerrainHeight))
 
 RWStructuredBuffer<float3> vertices;
 RWStructuredBuffer<float> heightmap;
+RWStructuredBuffer<float> heightmapSmooth;
 RWStructuredBuffer<float> heightmapRaw;
 RWTexture2D<float4> colors;
 
@@ -129,6 +130,21 @@ void HMProcessing (uint3 id : SV_DispatchThreadID)
 }
 
 [numthreads(8,8,1)]
+void Smoothing (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= xSize || id.y >= zSize)
+        return;
+    int vert = id.x + id.y * xSize;
+    float top = id.y < (zSize - 1) ? (heightmap[vert + xSize]) : heightmap[vert];
+    float bottom = id.y > 0 ? (heightmap[vert - xSize]) : heightmap[vert];
+    float left = id.x > 0 ? (heightmap[vert - 1]) : heightmap[vert];
+    float right = id.x < (xSize - 1) ? (heightmap[vert + 1]) : heightmap[vert];
+    float averageNeighbourDepth = (top + bottom + left + right) / 4;
+    float diff = heightmap[vert] - averageNeighbourDepth;
+    heightmapSmooth[vert] = heightmap[vert] - diff * 1;
+}
+
+[numthreads(8,8,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
     if (id.x >= xSize || id.y >= zSize)
@@ -151,7 +167,9 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     vertices[vert] = float3(x, height, z);
 
-    float height_norm = norm(height);
+    float heightSmooth = heightmapSmooth[vert];
+
+    float height_norm = norm(heightSmooth);
 
     //colors[id.xy] = GetColor(height);
     ColorSquare(id.xy*4, 4, GetColor(height_norm));
