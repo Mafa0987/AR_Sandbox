@@ -50,33 +50,6 @@ depthFrame = np.zeros((400, 300, 3), dtype=np.uint8)
 def draw_circle(event,x,y,flags,param):
     print(x,y)
 
-
-# def on_trackbar1(val):
-#     global topLeftx
-#     topLeftx = val
-
-# def on_trackbar2(val):
-#     global topLefty
-#     topLefty = val
-
-# def on_trackbar3(val):
-#     global bottomRightx
-#     bottomRightx = val
-
-# def on_trackbar4(val):
-#     global bottomRighty
-#     bottomRighty = val
-
-# cv2.namedWindow('trackbarWindow')
-# cv2.createTrackbar("topleftx", "trackbarWindow" , 0, 1920, on_trackbar1)
-# cv2.createTrackbar("topLefty", "trackbarWindow" , 0, 1080, on_trackbar2)
-# cv2.createTrackbar("bottomRightx", "trackbarWindow" , 0, 1920, on_trackbar3)
-# cv2.createTrackbar("bottomRighty", "trackbarWindow" , 0, 1080, on_trackbar4)
-# cv2.setTrackbarPos("topleftx", "trackbarWindow", 660)
-# cv2.setTrackbarPos("topLefty", "trackbarWindow", 5)
-# cv2.setTrackbarPos("bottomRightx", "trackbarWindow", 1480)
-# cv2.setTrackbarPos("bottomRighty", "trackbarWindow", 911)
-
 run = False
 
 kinect = PyKinectRuntime.PyKinectRuntime(PyKinectV2.FrameSourceTypes_Depth | PyKinectV2.FrameSourceTypes_Color)
@@ -108,13 +81,13 @@ while(True):
             if run:
                 if rate > 1:
                     rate = 0
-                    if os.path.exists(f"C:/Users/mkf99/AR_Sandbox/NeuralNetwork/Data/PNG_A/Images/ClosedHand/{number}.png"):
+                    if os.path.exists(f"C:/Users/mkf99/AR_Sandbox/NeuralNetwork/Data/PNG_A/Images/OpenHand/{number}.png"):
                         print("File already exists")
                         break
-                    f = open(f"C:/Users/mkf99/AR_Sandbox/NeuralNetwork/Data/PNG_A/Positions/ClosedHand/{number}.txt", "x")
+                    f = open(f"C:/Users/mkf99/AR_Sandbox/NeuralNetwork/Data/PNG_A/Positions/OpenHand/{number}.txt", "x")
                     f.write(str(depthx) + " " + str(depthy))
                     #f.write(str(0) + " " + str(0))
-                    cv2.imwrite(f"C:/Users/mkf99/AR_Sandbox/NeuralNetwork/Data/PNG_A/Images/ClosedHand/{number}.png", depth)
+                    cv2.imwrite(f"C:/Users/mkf99/AR_Sandbox/NeuralNetwork/Data/PNG_A/Images/OpenHand/{number}.png", depth)
                     f.close()
                     if number == 1000+499:
                         break
