@@ -1,0 +1,3 @@
+-Main folder containts different builds, all using the hand tracking model used in the user test. This model is made for the current setup where the sandbox is against the wall and may not work is well when people are stading at different sides. 
+
+-Hand Trackning for all directions folder contains builds with a hand tracking model made using data augmentation which roates the images 180 degrees so it should work for all directinos in the sandbox (may not work as well as the main model, assuming the sandbox is positioned in the same way as in ultimate lab). 
