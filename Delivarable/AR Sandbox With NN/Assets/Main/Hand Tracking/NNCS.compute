@@ -1,0 +1,97 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel ColorMapping
+#pragma kernel Bilinear
+#pragma kernel makeTexture
+
+RWStructuredBuffer<uint> depthData;
+RWStructuredBuffer<float> depthColor;
+RWStructuredBuffer<float> modelInput;
+float ratioX;
+float ratioY;
+int inputDimX;
+int inputDimY;
+int xCutL;
+int zCutB;
+int handX;
+int handY;
+
+RWTexture2D<float4> outputTexture;
+
+static float3 colorsArray[] = {float3(1, 0, 0), float3(1, 0.5, 0), float3(1, 1, 0), float3(0, 1, 0), float3(0, 0, 1)};
+
+float3 GetColor(float height)
+{
+    if (height == 0)
+        return float3(0, 0, 0);
+    for (int i = 0; i < 4; i++)
+    {
+        float lowerBound = i / 4.0;
+        float upperBound = lowerBound + 1.0 / 4.0;
+        float step = upperBound - lowerBound;
+        if (height <= upperBound)
+            return lerp(colorsArray[i], colorsArray[i+1], (height-lowerBound)/step);
+    }
+    return float3(0, 0, 1);
+}
+
+// Color mapping
+[numthreads(8,8,1)]
+void ColorMapping (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= inputDimX || id.y >= inputDimY)
+        return;
+    float depth = clamp(depthData[id.x + xCutL + (id.y + zCutB)*512] / 4500.0, 0, 1);
+    float3 color = GetColor(depth);
+    depthColor[id.x*3 + (inputDimY-1-id.y)*3*inputDimX] = color.x;
+    depthColor[id.x*3 + (inputDimY-1-id.y)*3*inputDimX + 1] = color.y;
+    depthColor[id.x*3 + (inputDimY-1-id.y)*3*inputDimX + 2] = color.z;
+}
+
+// Bilinear Interpolation
+[numthreads(8,8,1)]
+void Bilinear (uint3 id : SV_DispatchThreadID)
+{
+    int index = id.x * 3 + id.y * 3 * 256;
+    float x = id.x * ratioX;
+    float y = id.y * ratioY;
+    int x1 = (int)floor(x);
+    int y1 = (int)floor(y);
+    int x2 = min(x1 + 1, inputDimX - 1);
+    int y2 = min(y1 + 1, inputDimY - 1);
+    float4 c00;
+    c00.r = depthColor[x1*3 + y1*3*inputDimX];
+    c00.g = depthColor[x1*3 + y1*3*inputDimX + 1];
+    c00.b = depthColor[x1*3 + y1*3*inputDimX + 2];
+    float4 c10;
+    c10.r = depthColor[x2*3 + y1*3*inputDimX];
+    c10.g = depthColor[x2*3 + y1*3*inputDimX + 1];
+    c10.b = depthColor[x2*3 + y1*3*inputDimX + 2];
+    float4 c01;
+    c01.r = depthColor[x1*3 + y2*3*inputDimX];
+    c01.g = depthColor[x1*3 + y2*3*inputDimX + 1];
+    c01.b = depthColor[x1*3 + y2*3*inputDimX + 2];
+    float4 c11;
+    c11.r = depthColor[x2*3 + y2*3*inputDimX];
+    c11.g = depthColor[x2*3 + y2*3*inputDimX + 1];
+    c11.b = depthColor[x2*3 + y2*3*inputDimX + 2];
+    float4 c0 = lerp(c00, c10, x - x1);
+    float4 c1 = lerp(c01, c11, x - x1);
+    float4 colorOut = lerp(c0, c1, y - y1);
+    modelInput[index] = colorOut.r;
+    modelInput[index + 1] = colorOut.g;
+    modelInput[index + 2] = colorOut.b;
+}
+
+[numthreads(8,8,1)]
+void makeTexture (uint3 id : SV_DispatchThreadID)
+{
+    int index = id.x * 3 + (256-1-id.y) * 3 * 256;
+    if ((id.x - handX) * (id.x - handX) + ((255-id.y) - handY) * ((255-id.y) - handY) < 10)
+    {
+        outputTexture[id.xy] = float4(0, 1, 0, 1);
+    }
+    else
+    {
+        outputTexture[id.xy] = float4(modelInput[index]/255.0, modelInput[index + 1]/255.0, modelInput[index + 2]/255.0, 1);
+    }
+}

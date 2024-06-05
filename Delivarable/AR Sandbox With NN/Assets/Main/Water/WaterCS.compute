@@ -1,0 +1,205 @@
+#pragma kernel FindVelocity
+#pragma kernel UpdateHeights
+#pragma kernel UpdatePlane
+#pragma kernel WaterColor
+#pragma kernel AddWater
+#pragma kernel Refraction
+#pragma kernel Smoothing
+
+float c;
+float xSize;
+float zSize;
+float dt;
+float a;
+float maxTerrainHeight;
+float minTerrainHeight;
+
+bool clearWater;
+bool rainEnabled;
+
+RWStructuredBuffer<float3> vertices;
+RWStructuredBuffer<float3> terrainVertices;
+RWStructuredBuffer<float4> fluxMap; // x = top, y = bottom, z = left, w = right
+RWStructuredBuffer<float> depthMap;
+RWStructuredBuffer<float> depthMapTemp;
+RWStructuredBuffer<float> heightmap;
+RWTexture2D<float4> colors;
+RWTexture2D<float4> colorsTerrain;
+RWStructuredBuffer<float3> waterNormals;
+int handPositionX;
+int handPositionY;
+
+
+[numthreads(8,8,1)]
+void AddWater (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= xSize || id.y >= zSize)
+        return;
+
+    int index = id.x + id.y * xSize;
+    if ((id.x-handPositionX)*(id.x-handPositionX) + (id.y-handPositionY)*(id.y-handPositionY) < 2500)
+    {
+        depthMap[index] += 10 * dt;
+    }
+}
+
+[numthreads(8,8,1)]
+void FindVelocity (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= xSize || id.y >= zSize)
+        return;
+
+    int vert = id.x + id.y * xSize;
+    float4 flux = fluxMap[vert];
+    float depth = depthMap[vert];
+    float current = depth + heightmap[vert] - 0.1;
+
+    float top = id.y < (zSize - 1) ? (depthMap[vert + xSize] + heightmap[vert + xSize] - 0.1) : current;
+    float bottom = id.y > 0 ? (depthMap[vert - xSize] + heightmap[vert - xSize] - 0.1) : current;
+    float left = id.x > 0 ? (depthMap[vert - 1] + heightmap[vert - 1] - 0.1) : current;
+    float right = id.x < (xSize - 1) ? (depthMap[vert + 1] + heightmap[vert + 1] - 0.1) : current;
+
+    float dtop = current - top;
+    float dbottom = current - bottom;
+    float dleft = current - left;
+    float dright = current - right;
+
+    flux.x = max(0, flux.x + dtop * a * dt * c);
+    flux.y = max(0, flux.y + dbottom * a * dt * c);
+    flux.z = max(0, flux.z + dleft * a * dt * c);
+    flux.w = max(0, flux.w + dright * a * dt * c);
+
+    float k = min(1, depth * a / ((flux.x + flux.y + flux.z + flux.w)*dt));
+
+    flux.x *= k;
+    flux.y *= k;
+    flux.z *= k;
+    flux.w *= k;
+
+    if (id.x == 0) flux.z = 0;
+    if (id.y == 0) flux.y = 0;
+    if (id.x == xSize-1) flux.w = 0;
+    if (id.y == zSize-1) flux.x = 0;
+
+    fluxMap[vert] = max(0, flux);
+}
+
+[numthreads(8,8,1)]
+void UpdateHeights (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= xSize || id.y >= zSize)
+        return;
+
+    int vert = id.x + id.y * xSize;
+    float4 flux = fluxMap[vert];
+    float outflux = flux.x + flux.y + flux.z + flux.w;
+
+    float influxtop = id.y < (zSize-1) ? fluxMap[vert + xSize].y : 0;
+    float influxbottom = id.y > 0 ? fluxMap[vert - xSize].x : 0;
+    float influxleft = id.x > 0 ? fluxMap[vert - 1].w : 0;
+    float influxright = id.x < (xSize-1) ? fluxMap[vert + 1].z: 0;
+    
+    float influx = influxtop + influxbottom + influxleft + influxright;
+
+    float deltavolume = influx - outflux;
+
+    depthMap[vert] += dt * deltavolume / a;
+
+    if (clearWater)
+    {
+        depthMap[vert] = 0;
+    }
+
+    depthMapTemp[vert] = depthMap[vert];
+}
+
+[numthreads(8,8,1)]
+void Smoothing (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= xSize || id.y >= zSize)
+        return;
+
+    int vert = id.x + id.y * xSize;
+    float top = id.y < (zSize - 1) ? (depthMapTemp[vert + xSize]) : depthMapTemp[vert];
+    float bottom = id.y > 0 ? (depthMapTemp[vert - xSize]) : depthMapTemp[vert];
+    float left = id.x > 0 ? (depthMapTemp[vert - 1]) : depthMapTemp[vert];
+    float right = id.x < (xSize - 1) ? (depthMapTemp[vert + 1]) : depthMapTemp[vert];
+    float averageNeighbourDepth = (top + bottom + left + right) / 4;
+    float diff = depthMapTemp[vert] - averageNeighbourDepth;
+    depthMap[vert] -= diff * 1 * dt;
+    //fluxMap[vert] = fluxMap[vert] * pow(0.999, (50 * dt));
+    if (!rainEnabled)
+    {
+        float terrainHeight = (heightmap[vert] - minTerrainHeight)/(maxTerrainHeight - minTerrainHeight);
+        if (terrainHeight > 0.7){
+            depthMap[vert] = 0;
+        }
+    }
+}
+
+[numthreads(8,8,1)]
+void UpdatePlane (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= xSize || id.y >= zSize)
+        return;
+
+    int vert = id.x + id.y * xSize;
+    float columnHeight = depthMap[vert] + heightmap[vert] - 0.1;
+    vertices[vert] = float3(terrainVertices[vert].x, columnHeight, terrainVertices[vert].z);
+    //depthMap[vert] = max(depthMap[vert] - 0.5 * dt, 0);
+}
+
+[numthreads(8,8,1)]
+void WaterColor (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= xSize || id.y >= zSize)
+        return;
+    int vert = id.x + id.y * xSize;
+    float depth = depthMap[vert];
+    colors[id.xy] = float4(0, 0.0, 0.4, clamp(depth / 10, 0, 0.8));
+}
+
+float3 CalculateRefractionDirection(float3 normal, float3 incident, float n1, float n2)
+{
+    float n = n1 / n2;
+    float cosI = dot(normal, incident);
+    float sinT2 = n * n * (1.0 - cosI * cosI);
+    if (sinT2 > 1.0)
+        return float3(0, 0, 0);
+    float cosT = sqrt(1.0 - sinT2);
+    return n * incident + (n * cosI - cosT) * normal;
+}
+
+float4 InterpolateTexture(float2 value, RWTexture2D<float4> _texture, int textureWidth, int textureHeight)
+{
+    int x1 = (int)floor(value.x);
+    int y1 = (int)floor(value.y);
+    int x2 = min(x1 + 1, textureWidth - 1);
+    int y2 = min(y1 + 1, textureHeight - 1);
+    float4 c00 = _texture[uint2(x1, y1)];
+    float4 c10 = _texture[uint2(x2, y1)];
+    float4 c01 = _texture[uint2(x1, y2)];
+    float4 c11 = _texture[uint2(x2, y2)];
+    float4 c0 = lerp(c00, c10, value.x - x1);
+    float4 c1 = lerp(c01, c11, value.x - x1);
+    float4 colorOut = lerp(c0, c1, value.y - y1);
+    return colorOut;
+}
+
+[numthreads(8,8,1)]
+void Refraction (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= xSize*4 || id.y >= zSize*4)
+        return;
+
+    float heightadjustment = 1;
+    float currentDepth = min(depthMap[id.x/4 + id.y/4 * xSize] * heightadjustment, 20.0);
+    if (currentDepth <= 2)
+        return;
+    float3 incident = float3(0 , -1, 0);
+    float3 normal = waterNormals[id.x/4 + id.y/4 * xSize];
+    float3 refracted = CalculateRefractionDirection(normal, incident, 1.0, 1.33);
+    float2 displacedCoords = float2(min(id.x + refracted.x * currentDepth, xSize*4-1), min(id.y + refracted.z * currentDepth, zSize*4-1));
+    float4 terrainColor = InterpolateTexture(displacedCoords, colorsTerrain, xSize*4, zSize*4);
+    colorsTerrain[uint2(id.x, id.y)] = terrainColor;
+}
